@@ -294,7 +294,7 @@ const ShopPage = () => {
                         </div>
                       </Link>
                       
-                      <div className="flex flex-col flex-1">
+                      <div className="flex flex-col h-full">
                         <CardHeader className="pb-3">
                           <div className="space-y-2">
                             <CardTitle className="text-lg font-semibold line-clamp-2 leading-tight">
@@ -303,10 +303,14 @@ const ShopPage = () => {
                           </div>
                         </CardHeader>
                         
-                        <CardContent className="flex-1 pb-3">
-                          <p className="text-sm text-muted-foreground line-clamp-3 mb-4 leading-relaxed">
+                        <CardContent className="flex-1 pb-0">
+                          <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
                             {product.description}
                           </p>
+                        </CardContent>
+                        
+                        {/* Fixed height price section */}
+                        <div className="px-6 py-3">
                           <div className="flex justify-between items-center">
                             <span className="text-2xl font-bold text-primary">
                               €{product.price.toFixed(2)}
@@ -317,9 +321,9 @@ const ShopPage = () => {
                               </Badge>
                             )}
                           </div>
-                        </CardContent>
+                        </div>
                         
-                        <CardFooter className="pt-0 mt-auto">
+                        <CardFooter className="pt-0">
                           <Button
                             onClick={() => handleAddToCart(product.id)}
                             disabled={product.stock_quantity === 0}
