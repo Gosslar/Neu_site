@@ -570,7 +570,7 @@ const AdminPage = () => {
       // Create PDF
       const pdf = new jsPDF();
       
-      // Set font
+      // Set font to support German characters
       pdf.setFont('helvetica');
       
       // Header
@@ -579,9 +579,9 @@ const AdminPage = () => {
       
       pdf.setTextColor(255, 255, 255);
       pdf.setFontSize(24);
-      pdf.text('🦌 Jagdrevier Weetzen', 20, 20);
+      pdf.text('Jagdrevier Weetzen', 20, 20);
       pdf.setFontSize(12);
-      pdf.text('Premium Wildfleisch & Jagdspezialitäten', 20, 30);
+      pdf.text('Premium Wildfleisch & Jagdspezialitaeten', 20, 30);
       
       pdf.setFontSize(20);
       pdf.text('LIEFERSCHEIN', 150, 20);
@@ -595,7 +595,7 @@ const AdminPage = () => {
       let yPos = 60;
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('🏠 Kunde', 20, yPos);
+      pdf.text('Kunde', 20, yPos);
       
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
@@ -612,7 +612,7 @@ const AdminPage = () => {
       let yPosRight = 60;
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('📅 Abholung', 120, yPosRight);
+      pdf.text('Abholung', 120, yPosRight);
       
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
@@ -623,7 +623,7 @@ const AdminPage = () => {
       yPosRight += 7;
       pdf.text('Zahlungsart: Barzahlung bei Abholung', 120, yPosRight);
       yPosRight += 7;
-      const statusText = order.status === 'confirmed' ? 'Bestätigt' : order.status === 'pending' ? 'Bereit zur Abholung' : order.status;
+      const statusText = order.status === 'confirmed' ? 'Bestaetigt' : order.status === 'pending' ? 'Bereit zur Abholung' : order.status;
       pdf.text(`Status: ${statusText}`, 120, yPosRight);
       
       // Payment info box
@@ -635,7 +635,7 @@ const AdminPage = () => {
       
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('💰 Zahlungshinweis:', 25, yPos + 5);
+      pdf.text('Zahlungshinweis:', 25, yPos + 5);
       pdf.setFont('helvetica', 'normal');
       pdf.text('Barzahlung bei Abholung der Ware. Bitte halten Sie den entsprechenden Betrag bereit.', 25, yPos + 12);
       
@@ -648,9 +648,9 @@ const AdminPage = () => {
       pdf.setFillColor(45, 80, 22); // Dark green
       pdf.rect(20, yPos, 170, 10, 'F');
       pdf.setTextColor(255, 255, 255);
-      pdf.text('🥩 Artikel', 25, yPos + 7);
-      pdf.text('📦 Menge', 100, yPos + 7);
-      pdf.text('📝 Beschreibung', 130, yPos + 7);
+      pdf.text('Artikel', 25, yPos + 7);
+      pdf.text('Menge', 100, yPos + 7);
+      pdf.text('Beschreibung', 130, yPos + 7);
       
       pdf.setTextColor(0, 0, 0);
       pdf.setFont('helvetica', 'normal');
@@ -669,7 +669,7 @@ const AdminPage = () => {
         pdf.setFont('helvetica', 'bold');
         pdf.text(productName.substring(0, 30), 25, yPos + 4);
         pdf.setFont('helvetica', 'normal');
-        pdf.text(`${item.quantity} Stück`, 100, yPos + 4);
+        pdf.text(`${item.quantity} Stueck`, 100, yPos + 4);
         pdf.text(description.substring(0, 25), 130, yPos + 4);
         
         yPos += 12;
@@ -684,7 +684,7 @@ const AdminPage = () => {
       
       pdf.setFontSize(18);
       pdf.setFont('helvetica', 'bold');
-      pdf.text(`Gesamtbetrag: €${order.total_amount.toFixed(2)}`, 25, yPos + 8);
+      pdf.text(`Gesamtbetrag: EUR ${order.total_amount.toFixed(2)}`, 25, yPos + 8);
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
       pdf.text('Barzahlung bei Abholung', 25, yPos + 15);
@@ -693,8 +693,8 @@ const AdminPage = () => {
       yPos += 40;
       pdf.setFontSize(8);
       pdf.setTextColor(113, 128, 150); // Gray
-      pdf.text('Jagdrevier Weetzen | Premium Wildfleisch & Jagdspezialitäten', 20, yPos);
-      pdf.text(`Vielen Dank für Ihr Vertrauen! | Erstellt am ${new Date().toLocaleDateString('de-DE')} um ${new Date().toLocaleTimeString('de-DE')}`, 20, yPos + 5);
+      pdf.text('Jagdrevier Weetzen | Premium Wildfleisch & Jagdspezialitaeten', 20, yPos);
+      pdf.text(`Vielen Dank fuer Ihr Vertrauen! | Erstellt am ${new Date().toLocaleDateString('de-DE')} um ${new Date().toLocaleTimeString('de-DE')}`, 20, yPos + 5);
       
       // Save PDF
       pdf.save(`Lieferschein_${order.id.slice(0, 8)}.pdf`);
