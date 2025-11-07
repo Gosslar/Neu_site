@@ -35,26 +35,26 @@ const Footer = () => {
 
           {/* Shop Links */}
           <div>
-            <h3 className="font-semibold mb-4">Shop</h3>
+            <h3 className="font-semibold mb-4">Wildfleisch</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/shop" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
-                  Alle Produkte
+                  Wildfleisch
                 </Link>
               </li>
               <li>
-                <Link to="/shop?category=jagdausruestung" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
-                  Jagdausrüstung
+                <Link to="/shop?category=rehwild" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Rehwild
                 </Link>
               </li>
               <li>
-                <Link to="/shop?category=optik" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
-                  Optik
+                <Link to="/shop?category=rotwild" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Rotwild
                 </Link>
               </li>
               <li>
-                <Link to="/shop?category=bekleidung" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
-                  Bekleidung
+                <Link to="/shop?category=schwarzwild" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Schwarzwild
                 </Link>
               </li>
             </ul>

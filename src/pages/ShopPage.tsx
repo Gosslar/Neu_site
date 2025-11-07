@@ -136,9 +136,9 @@ const ShopPage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-4">Jagdausrüstung Shop</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-4">Wildfleisch Shop</h1>
           <p className="text-lg text-muted-foreground">
-            Entdecken Sie unsere Auswahl an hochwertiger Jagdausrüstung und Zubehör.
+            Entdecken Sie unser Sortiment an frischem Wildfleisch aus nachhaltiger Jagd.
           </p>
         </div>
 

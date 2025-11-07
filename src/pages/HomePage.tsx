@@ -9,8 +9,8 @@ const HomePage = () => {
   const features = [
     {
       icon: <ShoppingBag className="h-8 w-8" />,
-      title: 'Premium Jagdausrüstung',
-      description: 'Hochwertige Ausrüstung von führenden Herstellern für die professionelle Jagd.',
+      title: 'Frisches Wildfleisch',
+      description: 'Hochwertiges Wildfleisch aus nachhaltiger Jagd, direkt vom Jäger.',
     },
     {
       icon: <Users className="h-8 w-8" />,
@@ -19,8 +19,8 @@ const HomePage = () => {
     },
     {
       icon: <Award className="h-8 w-8" />,
-      title: 'Zertifizierte Qualität',
-      description: 'Alle Produkte werden sorgfältig ausgewählt und geprüft.',
+      title: 'Beste Qualität',
+      description: 'Wildfleisch aus artgerechter Haltung und stressfreier Erlegung.',
     },
     {
       icon: <Leaf className="h-8 w-8" />,
@@ -64,14 +64,14 @@ const HomePage = () => {
               Jagdrevier Weetzen
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-primary-foreground/90 max-w-3xl mx-auto">
-              Tradition trifft Moderne - Ihr Partner für nachhaltige Jagd, 
-              Premium-Ausrüstung und verantwortungsvollen Naturschutz
+              Tradition trifft Moderne - Frisches Wildfleisch aus nachhaltiger Jagd 
+              direkt vom Jäger zu Ihnen nach Hause
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/shop">
                 <Button size="lg" variant="secondary" className="w-full sm:w-auto">
                   <ShoppingBag className="mr-2 h-5 w-5" />
-                  Shop erkunden
+                  Wildfleisch bestellen
                 </Button>
               </Link>
               <Link to="/revier">
@@ -90,10 +90,10 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">
-              Warum Jagdrevier Weetzen?
+              Warum unser Wildfleisch?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Entdecken Sie, was uns zu Ihrem vertrauenswürdigen Partner für Jagd und Naturschutz macht.
+              Entdecken Sie, was unser Wildfleisch so besonders macht - von der nachhaltigen Jagd bis zur fachgerechten Verarbeitung.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -160,16 +160,16 @@ const HomePage = () => {
       <section className="py-16 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">
-            Werden Sie Teil unserer Gemeinschaft
+            Bestellen Sie jetzt frisches Wildfleisch
           </h2>
           <p className="text-xl mb-8 text-primary-foreground/90">
-            Entdecken Sie hochwertige Jagdausrüstung und werden Sie Teil einer 
-            Gemeinschaft, die Tradition und Nachhaltigkeit vereint.
+            Entdecken Sie unser Sortiment an frischem Wildfleisch aus nachhaltiger Jagd 
+            und lassen Sie sich die Delikatessen direkt nach Hause liefern.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/shop">
               <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                Jetzt einkaufen
+                Wildfleisch bestellen
               </Button>
             </Link>
             <Link to="/auth">
