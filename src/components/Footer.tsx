@@ -20,7 +20,7 @@ const Footer = () => {
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4" />
-                <span className="text-sm">Weetzen, Niedersachsen</span>
+                <span className="text-sm">Christoph Burchard - Linderte (Pächter)</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4" />
