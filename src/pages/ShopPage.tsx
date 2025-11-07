@@ -127,6 +127,42 @@ const ShopPage = () => {
     product.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Group products by category
+  const groupedProducts = React.useMemo(() => {
+    const groups: { [key: string]: { category: Category; products: Product[] } } = {};
+    
+    filteredProducts.forEach(product => {
+      const categoryName = product.category.name;
+      if (!groups[categoryName]) {
+        groups[categoryName] = {
+          category: product.category,
+          products: []
+        };
+      }
+      groups[categoryName].products.push(product);
+    });
+
+    // Sort products within each category
+    Object.values(groups).forEach(group => {
+      group.products.sort((a, b) => {
+        switch (sortBy) {
+          case 'price_asc':
+            return a.price - b.price;
+          case 'price_desc':
+            return b.price - a.price;
+          case 'name':
+          default:
+            return a.name.localeCompare(b.name);
+        }
+      });
+    });
+
+    // Sort categories alphabetically
+    return Object.entries(groups)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([_, group]) => group);
+  }, [filteredProducts, sortBy]);
+
   const handleAddToCart = async (productId: string) => {
     await addToCart(productId, 1);
   };
@@ -218,70 +254,87 @@ const ShopPage = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
-                <Link to={`/product/${product.id}`} className="block">
-                  <div className="aspect-square relative overflow-hidden">
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                    {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
-                      <Badge className="absolute top-3 right-3 bg-orange-500 text-white shadow-md">
-                        Nur noch {product.stock_quantity}
-                      </Badge>
-                    )}
-                    {product.stock_quantity === 0 && (
-                      <Badge className="absolute top-3 right-3 bg-red-500 text-white shadow-md">
-                        Ausverkauft
-                      </Badge>
-                    )}
-                  </div>
-                </Link>
-                
-                <div className="flex flex-col flex-1">
-                  <CardHeader className="pb-3">
-                    <div className="space-y-2">
-                      <CardTitle className="text-lg font-semibold line-clamp-2 leading-tight">
-                        {product.name}
-                      </CardTitle>
-                      <Badge variant="secondary" className="w-fit text-xs">
-                        {product.category.name}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="flex-1 pb-3">
-                    <p className="text-sm text-muted-foreground line-clamp-3 mb-4 leading-relaxed">
-                      {product.description}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-2xl font-bold text-primary">
-                        €{product.price.toFixed(2)}
-                      </span>
-                      {product.stock_quantity > 5 && (
-                        <Badge variant="outline" className="text-xs text-green-600 border-green-200">
-                          Verfügbar
-                        </Badge>
-                      )}
-                    </div>
-                  </CardContent>
-                  
-                  <CardFooter className="pt-0 mt-auto">
-                    <Button
-                      onClick={() => handleAddToCart(product.id)}
-                      disabled={product.stock_quantity === 0}
-                      className="w-full"
-                      variant={product.stock_quantity === 0 ? "secondary" : "default"}
-                    >
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      {product.stock_quantity === 0 ? 'Ausverkauft' : 'In den Warenkorb'}
-                    </Button>
-                  </CardFooter>
+          <div className="space-y-12">
+            {groupedProducts.map((group, groupIndex) => (
+              <div key={group.category.id} className="space-y-6">
+                {/* Category Header */}
+                <div className="border-b border-border pb-4">
+                  <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
+                    {group.category.name}
+                    <Badge variant="outline" className="text-sm">
+                      {group.products.length} {group.products.length === 1 ? 'Produkt' : 'Produkte'}
+                    </Badge>
+                  </h2>
+                  <p className="text-muted-foreground mt-2">
+                    Entdecken Sie unsere Auswahl an {group.category.name.toLowerCase()}
+                  </p>
                 </div>
-              </Card>
+                
+                {/* Products Grid for this category */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {group.products.map((product) => (
+                    <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
+                      <Link to={`/product/${product.id}`} className="block">
+                        <div className="aspect-square relative overflow-hidden">
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          />
+                          {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
+                            <Badge className="absolute top-3 right-3 bg-orange-500 text-white shadow-md">
+                              Nur noch {product.stock_quantity}
+                            </Badge>
+                          )}
+                          {product.stock_quantity === 0 && (
+                            <Badge className="absolute top-3 right-3 bg-red-500 text-white shadow-md">
+                              Ausverkauft
+                            </Badge>
+                          )}
+                        </div>
+                      </Link>
+                      
+                      <div className="flex flex-col flex-1">
+                        <CardHeader className="pb-3">
+                          <div className="space-y-2">
+                            <CardTitle className="text-lg font-semibold line-clamp-2 leading-tight">
+                              {product.name}
+                            </CardTitle>
+                          </div>
+                        </CardHeader>
+                        
+                        <CardContent className="flex-1 pb-3">
+                          <p className="text-sm text-muted-foreground line-clamp-3 mb-4 leading-relaxed">
+                            {product.description}
+                          </p>
+                          <div className="flex justify-between items-center">
+                            <span className="text-2xl font-bold text-primary">
+                              €{product.price.toFixed(2)}
+                            </span>
+                            {product.stock_quantity > 5 && (
+                              <Badge variant="outline" className="text-xs text-green-600 border-green-200">
+                                Verfügbar
+                              </Badge>
+                            )}
+                          </div>
+                        </CardContent>
+                        
+                        <CardFooter className="pt-0 mt-auto">
+                          <Button
+                            onClick={() => handleAddToCart(product.id)}
+                            disabled={product.stock_quantity === 0}
+                            className="w-full"
+                            variant={product.stock_quantity === 0 ? "secondary" : "default"}
+                          >
+                            <ShoppingCart className="mr-2 h-4 w-4" />
+                            {product.stock_quantity === 0 ? 'Ausverkauft' : 'In den Warenkorb'}
+                          </Button>
+                        </CardFooter>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
