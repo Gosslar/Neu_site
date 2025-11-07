@@ -16,8 +16,8 @@ serve(async (req) => {
   try {
     const { user_id, items, total_amount, customer_info, payment_method = 'card', payment_status = 'completed' } = await req.json();
 
-    // Validate required fields
-    if (!user_id || !items || !Array.isArray(items) || items.length === 0 || !total_amount || !customer_info) {
+    // Validate required fields (user_id is now optional for guest orders)
+    if (!items || !Array.isArray(items) || items.length === 0 || !total_amount || !customer_info) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { 
@@ -36,7 +36,7 @@ serve(async (req) => {
     const { data: order, error: orderError } = await supabase
       .from('orders_2025_11_07_14_31')
       .insert({
-        user_id,
+        user_id: user_id || null, // Allow null for guest orders
         total_amount,
         status: payment_method === 'cash' ? 'pending' : 'confirmed',
         payment_method,
@@ -96,8 +96,8 @@ serve(async (req) => {
       }
     }
 
-    // Update user profile with customer info if provided
-    if (customer_info.fullName || customer_info.phone || customer_info.address) {
+    // Update user profile with customer info if provided (only for registered users)
+    if (user_id && (customer_info.fullName || customer_info.phone || customer_info.address)) {
       const { error: profileError } = await supabase
         .from('profiles_2025_11_07_14_31')
         .update({
@@ -119,6 +119,7 @@ serve(async (req) => {
       order_items: orderItems,
       payment_method,
       payment_status,
+      is_guest_order: !user_id,
       message: payment_method === 'cash' 
         ? 'Bestellung erfolgreich erstellt. Barzahlung bei Abholung.'
         : 'Bestellung erfolgreich verarbeitet.'

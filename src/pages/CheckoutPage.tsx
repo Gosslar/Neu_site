@@ -52,14 +52,7 @@ const CheckoutForm = () => {
   };
 
   const handleCashPayment = async () => {
-    if (!user) {
-      toast({
-        title: "Fehler",
-        description: "Sie müssen angemeldet sein, um eine Bestellung aufzugeben.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Guest orders are now allowed - no login required
 
     if (!formData.fullName || !formData.email || !formData.phone) {
       toast({
@@ -78,7 +71,7 @@ const CheckoutForm = () => {
         'process_order_enhanced_2025_11_07_14_31',
         {
           body: {
-            user_id: user.id,
+            user_id: user?.id || null, // Allow guest orders
             items: items,
             total_amount: getTotalPrice(),
             customer_info: formData,
@@ -119,10 +112,10 @@ const CheckoutForm = () => {
       return;
     }
 
-    if (!stripe || !elements || !user) {
+    if (!stripe || !elements) {
       toast({
         title: "Fehler",
-        description: "Zahlungssystem wird initialisiert oder Sie sind nicht angemeldet.",
+        description: "Zahlungssystem wird initialisiert.",
         variant: "destructive",
       });
       return;
@@ -207,7 +200,7 @@ const CheckoutForm = () => {
           'process_order_enhanced_2025_11_07_14_31',
           {
             body: {
-              user_id: user.id,
+              user_id: user?.id || null, // Allow guest orders
               items: items,
               total_amount: getTotalPrice(),
               customer_info: formData,
@@ -256,6 +249,14 @@ const CheckoutForm = () => {
       <Card>
         <CardHeader>
           <CardTitle>Lieferinformationen</CardTitle>
+          {!user && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-2">
+              <p className="text-sm text-blue-800">
+                👤 <strong>Gastbestellung:</strong> Sie können auch ohne Anmeldung bestellen. 
+                Ihre Daten werden nur für diese Bestellung verwendet.
+              </p>
+            </div>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
