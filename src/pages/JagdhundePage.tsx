@@ -9,25 +9,22 @@ const JagdhundePage = () => {
       name: 'Brandlbracke',
       description: 'Österreichische Bracke mit ausgezeichneter Spurlaut und Finderwillen. Spezialist für schwieriges Gelände.',
       specialties: ['Schweißarbeit', 'Nachsuche', 'Spurlaut', 'Stöberjagd'],
-      image: '/images/hunting_dogs_3.jpeg',
-      origin: 'Österreich',
-      certification: 'VGP geprüft'
+      image: '/images/brandlbracke_hunting_dog_20251107_200713.png',
+      origin: 'Österreich'
     },
     {
       name: 'Alpenländische Dachsbracke',
       description: 'Robuste Bracke aus den Alpen. Hervorragend für Nachsuche und Schweißarbeit in schwierigem Terrain.',
       specialties: ['Schweißarbeit', 'Nachsuche', 'Dachsjagd', 'Spurarbeit'],
-      image: '/images/hunting_dogs_1.webp',
-      origin: 'Österreich/Bayern',
-      certification: 'VGP geprüft'
+      image: '/images/alpenlaendische_dachsbracke_20251107_200735.png',
+      origin: 'Österreich/Bayern'
     },
     {
       name: 'Deutsche Bracke',
       description: 'Traditionelle deutsche Bracke mit hervorragender Nase und ausdauerndem Spurwillen.',
       specialties: ['Schweißarbeit', 'Nachsuche', 'Spurlaut', 'Meutejagd'],
-      image: '/images/hunting_dogs_2.jpeg',
-      origin: 'Deutschland',
-      certification: 'VGP geprüft'
+      image: '/images/deutsche_bracke_1.webp',
+      origin: 'Deutschland'
     },
   ];
 
@@ -71,7 +68,7 @@ const JagdhundePage = () => {
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Unsere vierbeinigen Partner sind das Herzstück einer erfolgreichen und waidgerechten Jagd. 
-            <strong>Ausschließlich geprüfte Jagdgebrauchshunde</strong> kommen bei uns zum Einsatz.
+            Spezialisierte Bracken für Schweißarbeit und Nachsuche kommen bei uns zum Einsatz.
           </p>
         </div>
 
@@ -94,9 +91,9 @@ const JagdhundePage = () => {
 
         {/* Dog Breeds Section */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Unsere geprüften Jagdgebrauchshunde</h2>
+          <h2 className="text-3xl font-bold text-center mb-8">Unsere Jagdgebrauchshunde</h2>
           <p className="text-center text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Alle unsere Jagdhunde sind VGP-geprüfte Bracken mit hervorragenden Leistungen in der Schweißarbeit und Nachsuche.
+            Unsere Bracken sind spezialisiert auf Schweißarbeit und Nachsuche in schwierigem Gelände.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {dogBreeds.map((breed, index) => (
@@ -109,12 +106,7 @@ const JagdhundePage = () => {
                   />
                 </div>
                 <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-xl">{breed.name}</CardTitle>
-                    <Badge variant="outline" className="text-xs">
-                      {breed.certification}
-                    </Badge>
-                  </div>
+                  <CardTitle className="text-xl">{breed.name}</CardTitle>
                   <p className="text-sm text-muted-foreground">
                     Herkunft: {breed.origin}
                   </p>
