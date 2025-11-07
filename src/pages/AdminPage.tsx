@@ -284,6 +284,16 @@ const AdminPage = () => {
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate required fields
+    if (!productForm.name || !productForm.category_id || productForm.price <= 0) {
+      toast({
+        title: "Validierungsfehler",
+        description: "Bitte füllen Sie alle Pflichtfelder aus (Name, Kategorie, Preis).",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       if (editingProduct) {
         const { error } = await supabase
@@ -322,9 +332,19 @@ const AdminPage = () => {
       fetchProducts();
     } catch (error: any) {
       console.error('Error saving product:', error);
+      console.error('Product form data:', productForm);
+      console.error('User admin status:', isAdmin);
+      
+      let errorMessage = error.message;
+      if (error.message.includes('RLS')) {
+        errorMessage = 'Sie haben keine Berechtigung, Produkte zu erstellen. Stellen Sie sicher, dass Sie als Administrator angemeldet sind.';
+      } else if (error.message.includes('violates')) {
+        errorMessage = 'Datenvalidierungsfehler. Überprüfen Sie alle Eingabefelder.';
+      }
+      
       toast({
         title: "Fehler beim Speichern",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -1192,8 +1212,11 @@ const AdminPage = () => {
                             id="image"
                             value={productForm.image_url}
                             onChange={(e) => setProductForm({ ...productForm, image_url: e.target.value })}
-                            placeholder="/images/product.jpg"
+                            placeholder="/images/wildfleisch-1.jpg"
                           />
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Verfügbare Bilder: wildfleisch-1.jpg bis wildfleisch-13.jpg
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <input
