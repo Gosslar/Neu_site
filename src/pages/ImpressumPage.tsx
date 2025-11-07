@@ -28,25 +28,17 @@ const ImpressumPage = () => {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="font-semibold">Jagdrevier Weetzen e.V.</p>
-                    <p className="text-muted-foreground">Eingetragener Verein</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
                   <User className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="font-semibold">Vereinsvorstand</p>
-                    <p className="text-muted-foreground">1. Vorsitzender: Max Mustermann</p>
-                    <p className="text-muted-foreground">2. Vorsitzender: Anna Schmidt</p>
+                    <p className="font-semibold">Ole Gosslar</p>
+                    <p className="text-muted-foreground">Inhaber Jagdrevier Weetzen</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p>Musterstraße 123</p>
-                    <p>30952 Ronnenberg-Weetzen</p>
+                    <p>Am Denkmal 16</p>
+                    <p>30952 Ronnenberg</p>
                     <p>Deutschland</p>
                   </div>
                 </div>
@@ -75,27 +67,9 @@ const ImpressumPage = () => {
                   <Mail className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="font-semibold">E-Mail:</p>
-                    <p className="text-muted-foreground">info@jagdrevier-weetzen.de</p>
+                    <p className="text-muted-foreground">info@jagd-weetzen.de</p>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Vereinsregister */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-6 w-6 text-primary" />
-                Vereinsregister
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p><strong>Registergericht:</strong> Amtsgericht Hannover</p>
-                <p><strong>Registernummer:</strong> VR 123456</p>
-                <p><strong>Vereinssitz:</strong> Ronnenberg-Weetzen</p>
-                <p><strong>Gründungsjahr:</strong> 1970</p>
               </div>
             </CardContent>
           </Card>

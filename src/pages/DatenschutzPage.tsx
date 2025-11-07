@@ -27,15 +27,16 @@ const DatenschutzPage = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <p><strong>Jagdrevier Weetzen e.V.</strong></p>
-                <p>Musterstraße 123<br />30952 Ronnenberg-Weetzen<br />Deutschland</p>
+                <p><strong>Ole Gosslar</strong></p>
+                <p><strong>Jagdrevier Weetzen</strong></p>
+                <p>Am Denkmal 16<br />30952 Ronnenberg<br />Deutschland</p>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <span>+49 (0) 5109 123456</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span>info@jagdrevier-weetzen.de</span>
+                  <span>info@jagd-weetzen.de</span>
                 </div>
               </div>
             </CardContent>
@@ -260,13 +261,13 @@ const DatenschutzPage = () => {
                   Bei Fragen zum Datenschutz wenden Sie sich bitte an:
                 </p>
                 <div className="bg-muted/50 p-4 rounded-lg">
-                  <p><strong>Jagdrevier Weetzen e.V.</strong></p>
-                  <p>Datenschutzbeauftragter</p>
-                  <p>Musterstraße 123</p>
-                  <p>30952 Ronnenberg-Weetzen</p>
+                  <p><strong>Ole Gosslar</strong></p>
+                  <p><strong>Jagdrevier Weetzen</strong></p>
+                  <p>Am Denkmal 16</p>
+                  <p>30952 Ronnenberg</p>
                   <div className="flex items-center gap-2 mt-2">
                     <Mail className="h-4 w-4" />
-                    <span>datenschutz@jagdrevier-weetzen.de</span>
+                    <span>info@jagd-weetzen.de</span>
                   </div>
                 </div>
               </div>
