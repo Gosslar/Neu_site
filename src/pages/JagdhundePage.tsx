@@ -76,8 +76,8 @@ const JagdhundePage = () => {
         <div className="mb-12">
           <div className="aspect-video relative overflow-hidden rounded-lg">
             <img
-              src="/images/hunting_dogs_4.webp"
-              alt="Jagdhunde im Einsatz"
+              src="/images/bracken_training_scene_20251107_202434.png"
+              alt="Bracken-Ausbildung im Revier"
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center">

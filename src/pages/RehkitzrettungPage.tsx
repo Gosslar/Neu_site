@@ -145,6 +145,22 @@ const RehkitzrettungPage = () => {
             Sofort anrufen: 0151 123 456 78
           </Button>
         </div>
+        
+        {/* Hero Image */}
+        <div className="mb-8">
+          <div className="aspect-video relative overflow-hidden rounded-lg">
+            <img
+              src="/images/fawn_rescue_drone_scene_20251107_202453.png"
+              alt="Rehkitzrettung mit Drohne"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/20 flex items-end justify-center pb-6">
+              <div className="text-center text-white">
+                <p className="text-lg font-semibold">Moderne Drohnen-Technologie rettet Leben</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Aktuelle Statistiken */}

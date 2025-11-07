@@ -76,8 +76,24 @@ const StapelteichePage = () => {
         </div>
       </div>
 
+      {/* Hero Image */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="aspect-video relative overflow-hidden rounded-lg mb-8">
+          <img
+            src="/images/stapelteiche_landscape_20251107_202516.png"
+            alt="Weetzer Stapelteiche Naturschutzgebiet"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/20 flex items-end justify-center pb-6">
+            <div className="text-center text-white">
+              <p className="text-lg font-semibold">20 Hektar Naturparadies mit 275 Vogelarten</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Area Statistics */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {areaData.map((item, index) => (
             <Card key={index} className="text-center">
