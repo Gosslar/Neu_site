@@ -1,58 +1,148 @@
-# Project Build Guide
+# Jagdrevier Weetzen - Website
 
-## Tech Stack
+Eine moderne Website für das Jagdrevier Weetzen mit Wildfleisch-Shop und umfassenden Informationen über nachhaltige Jagd.
 
-This project is built using the following technologies:
+## 🎯 Features
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### 🛒 Wildfleisch-Shop
+- **Produktkatalog** mit 5 Kategorien (Rehwild, Rotwild, Schwarzwild, Federwild, Wurstspezialitäten)
+- **Gastbestellungen** ohne Anmeldung möglich
+- **Barzahlung bei Abholung** als einzige Zahlungsmethode
+- **Admin-Panel** für Produktverwaltung
+- **PDF-Lieferscheine** automatisch generiert
 
-## Prerequisites
+### 🏞️ Revirinformationen
+- **Jagdhunde im Revier** - Ausbildung und Einsatz
+- **Rehkitzrettung** - Moderne Drohnen-Technologie
+- **Weetzer Stapelteiche** - Gewässer und Fischbestand
+- **Revierbeschreibung** - 340 Hektar Wiesen- und Feldlandschaft
+- **Prädatorenmanagement** - Detaillierte Informationen zu Jagdzeiten in Niedersachsen
 
-Make sure your system has Node.js and npm installed.
+### 🔧 Technische Features
+- **React + TypeScript** - Moderne Frontend-Technologie
+- **Supabase Backend** - Datenbank und Authentifizierung
+- **Responsive Design** - Optimiert für alle Geräte
+- **PDF-Generierung** - Professionelle Lieferscheine
+- **Admin-Bereich** - Vollständige Verwaltung
 
-We recommend using nvm to install Node.js: [nvm Installation Guide](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 Deployment für Alfahosting
 
-## Install Dependencies
+### Voraussetzungen
+- Alfahosting-Webspace mit PHP-Unterstützung
+- FTP-Zugang zum Webspace
+- Domain oder Subdomain
 
-```sh
-npm install
+### Installation
+
+1. **Dateien hochladen:**
+   ```bash
+   # Alle Dateien aus dem /dist Ordner auf den Webspace hochladen
+   # Zielverzeichnis: public_html/ oder httpdocs/
+   ```
+
+2. **Supabase-Konfiguration:**
+   - Supabase-Projekt erstellen auf [supabase.com](https://supabase.com)
+   - API-Keys in die Umgebungsvariablen eintragen
+   - Datenbank-Migrationen ausführen
+
+3. **Domain-Konfiguration:**
+   - Domain auf den Alfahosting-Webspace zeigen lassen
+   - SSL-Zertifikat aktivieren
+
+### Dateistruktur für Webspace
+
+```
+public_html/
+├── index.html              # Haupt-HTML-Datei
+├── assets/                 # CSS, JS und andere Assets
+│   ├── index-*.css        # Stylesheet
+│   ├── index-*.js         # JavaScript-Bundle
+│   └── ...
+├── images/                 # Produktbilder und Fotos
+│   ├── wildfleisch-*.jpg  # Wildfleisch-Produktbilder
+│   ├── nature_*.jpeg      # Naturfotos
+│   └── photo_*.jpg        # Revierfoto
+└── .htaccess              # Apache-Konfiguration (falls nötig)
 ```
 
-## Development Server
+### Umgebungsvariablen
 
-Start the development server with hot reload and instant preview:
+Für die Supabase-Integration werden folgende Variablen benötigt:
+- `VITE_SUPABASE_URL` - Supabase-Projekt-URL
+- `VITE_SUPABASE_ANON_KEY` - Supabase Anonymous Key
 
-```sh
+### .htaccess für Single Page Application
+
+```apache
+RewriteEngine On
+RewriteBase /
+
+# Handle Angular and React Router
+RewriteRule ^(?!.*\.).*$ /index.html [L]
+
+# Security headers
+Header always set X-Content-Type-Options nosniff
+Header always set X-Frame-Options DENY
+Header always set X-XSS-Protection "1; mode=block"
+```
+
+## 📊 Admin-Bereich
+
+### Zugang
+- **URL:** `/admin` (nach Anmeldung)
+- **Admin-Account:** `info@jagd-weetzen.de`
+- **Funktionen:**
+  - Produktverwaltung (Erstellen, Bearbeiten, Löschen)
+  - Kategorienverwaltung
+  - Bestellübersicht
+  - Benutzerverwaltung
+  - PDF-Lieferscheine generieren
+
+### Bestellverwaltung
+- Übersicht aller Bestellungen (Gast- und Benutzerbestellungen)
+- Status-Verwaltung (Pending, Confirmed)
+- Kundendaten-Anzeige
+- Lieferschein-Generierung als PDF
+
+## 🛠️ Entwicklung
+
+### Lokale Entwicklung
+```bash
+npm install
 npm run dev
 ```
 
-## Build Project
-
-Build for production:
-
-```sh
+### Build für Produktion
+```bash
 npm run build
 ```
 
-## Preview Build
+### Supabase-Setup
+1. Projekt auf supabase.com erstellen
+2. Datenbank-Migrationen aus `/supabase/migrations/` ausführen
+3. Edge Functions aus `/supabase/edge_function/` deployen
+4. RLS-Policies aktivieren
 
-Preview the built project:
+## 📱 Responsive Design
 
-```sh
-npm run preview
-```
+- **Desktop:** Vollständige Navigation mit Dropdown-Menüs
+- **Tablet:** Angepasste Layouts für mittlere Bildschirme
+- **Mobile:** Hamburger-Menü und Touch-optimierte Bedienung
 
-## Project Structure
+## 🌿 Nachhaltigkeit
 
-```
-src/
-├── components/     # UI Components
-├── pages/         # Page Components
-├── hooks/         # Custom Hooks
-├── lib/           # Utility Library
-└── main.tsx       # Application Entry Point
-```
+Die Website spiegelt die Werte des Jagdreviers wider:
+- **Nachhaltige Jagd** in 340 Hektar naturbelassener Landschaft
+- **Tradition und Moderne** in Einklang
+- **Respekt vor der Natur** und verantwortungsvolle Hege
+- **Lokale Vermarktung** von Wildfleisch
+
+## 📞 Support
+
+Bei Fragen zur Website oder technischen Problemen:
+- **E-Mail:** info@jagd-weetzen.de
+- **Dokumentation:** Siehe README-Dateien in den jeweiligen Ordnern
+
+---
+
+**Jagdrevier Weetzen** - Tradition, Respekt vor der Natur und verantwortungsvolle Hege seit Generationen.
