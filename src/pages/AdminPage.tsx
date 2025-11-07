@@ -187,6 +187,22 @@ const AdminPage = () => {
 
   const fetchOrders = async () => {
     try {
+      console.log('Fetching orders...');
+      
+      // First, try to get orders without joins to test basic access
+      const { data: basicOrders, error: basicError } = await supabase
+        .from('orders_2025_11_07_14_31')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (basicError) {
+        console.error('Basic orders fetch error:', basicError);
+        throw basicError;
+      }
+
+      console.log('Basic orders fetched:', basicOrders?.length || 0);
+
+      // If basic fetch works, try with joins
       const { data, error } = await supabase
         .from('orders_2025_11_07_14_31')
         .select(`
@@ -200,7 +216,18 @@ const AdminPage = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Full orders fetch error:', error);
+        // Fallback to basic orders if joins fail
+        setOrders(basicOrders?.map(order => ({
+          ...order,
+          profiles: null,
+          order_items: []
+        })) || []);
+        return;
+      }
+
+      console.log('Full orders fetched:', data?.length || 0);
       setOrders(data || []);
     } catch (error: any) {
       console.error('Error fetching orders:', error);
@@ -1089,7 +1116,17 @@ const AdminPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orders.map((order) => (
+                    {orders.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8">
+                          <div className="text-muted-foreground">
+                            <p className="text-lg mb-2">Keine Bestellungen vorhanden</p>
+                            <p className="text-sm">Bestellungen werden hier angezeigt, sobald Kunden etwas bestellen.</p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      orders.map((order) => (
                       <TableRow key={order.id}>
                         <TableCell className="font-medium">
                           #{order.id.slice(0, 8)}
@@ -1196,7 +1233,8 @@ const AdminPage = () => {
                           </Dialog>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
