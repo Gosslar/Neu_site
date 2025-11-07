@@ -45,10 +45,11 @@ interface Order {
   payment_method: string;
   payment_status: string;
   created_at: string;
-  profiles: {
+  customer_info?: any;
+  profiles?: {
     full_name: string;
     email: string;
-  };
+  } | null;
   order_items: {
     quantity: number;
     price: number;
@@ -1095,8 +1096,18 @@ const AdminPage = () => {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{order.profiles?.full_name}</div>
-                            <div className="text-sm text-muted-foreground">{order.profiles?.email}</div>
+                            <div className="font-medium">
+                              {order.profiles?.full_name || 
+                               (order.customer_info && typeof order.customer_info === 'object' 
+                                 ? (order.customer_info as any).fullName 
+                                 : 'Unbekannt')}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {order.profiles?.email || 
+                               (order.customer_info && typeof order.customer_info === 'object' 
+                                 ? (order.customer_info as any).email 
+                                 : 'Keine E-Mail')}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -1144,8 +1155,24 @@ const AdminPage = () => {
                               <div className="space-y-4">
                                 <div>
                                   <h4 className="font-semibold mb-2">Kunde</h4>
-                                  <p>{order.profiles?.full_name}</p>
-                                  <p className="text-sm text-muted-foreground">{order.profiles?.email}</p>
+                                  <p>
+                                    {order.profiles?.full_name || 
+                                     (order.customer_info && typeof order.customer_info === 'object' 
+                                       ? (order.customer_info as any).fullName 
+                                       : 'Unbekannt')}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {order.profiles?.email || 
+                                     (order.customer_info && typeof order.customer_info === 'object' 
+                                       ? (order.customer_info as any).email 
+                                       : 'Keine E-Mail')}
+                                  </p>
+                                  {order.customer_info && typeof order.customer_info === 'object' && (
+                                    <div className="mt-2 text-sm">
+                                      <p>Telefon: {(order.customer_info as any).phone || 'Nicht angegeben'}</p>
+                                      <p>Adresse: {(order.customer_info as any).address || 'Nicht angegeben'}</p>
+                                    </div>
+                                  )}
                                 </div>
                                 <Separator />
                                 <div>
