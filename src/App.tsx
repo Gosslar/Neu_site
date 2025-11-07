@@ -18,6 +18,8 @@ import RevierPage from '@/pages/RevierPage';
 import PraedatorenPage from '@/pages/PraedatorenPage';
 import AdminPage from '@/pages/AdminPage';
 import AuthPage from '@/pages/AuthPage';
+import ImpressumPage from '@/pages/ImpressumPage';
+import DatenschutzPage from '@/pages/DatenschutzPage';
 import './App.css';
 
 function App() {
@@ -42,6 +44,8 @@ function App() {
                 <Route path="/praedatoren" element={<PraedatorenPage />} />
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/impressum" element={<ImpressumPage />} />
+                <Route path="/datenschutz" element={<DatenschutzPage />} />
               </Routes>
             </main>
             <Footer />
