@@ -320,6 +320,16 @@ const ShopPage = () => {
                                 Verfügbar
                               </Badge>
                             )}
+                            {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
+                              <Badge className="text-xs bg-orange-500 text-white">
+                                Nur noch {product.stock_quantity}
+                              </Badge>
+                            )}
+                            {product.stock_quantity === 0 && (
+                              <Badge className="text-xs bg-red-500 text-white">
+                                Ausverkauft
+                              </Badge>
+                            )}
                           </div>
                         </div>
                         
