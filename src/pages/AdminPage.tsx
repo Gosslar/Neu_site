@@ -13,8 +13,9 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Package, ShoppingCart, Users, TrendingUp, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, ShoppingCart, Users, TrendingUp, Eye, FileText } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
 
 interface Product {
   id: string;
@@ -566,237 +567,141 @@ const AdminPage = () => {
       const orderDate = new Date(order.created_at).toLocaleDateString('de-DE');
       const deliveryDate = new Date().toLocaleDateString('de-DE');
 
-      // Generate HTML content
-      const htmlContent = `
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lieferschein - Jagdrevier Weetzen</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #2d3748;
-            background: #f7fafc;
-            padding: 20px;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        .header {
-            background: linear-gradient(135deg, #2d5016 0%, #4a7c59 100%);
-            color: white;
-            padding: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .company-name {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .company-subtitle {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        .document-info {
-            text-align: right;
-        }
-        .document-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        .document-number {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-        .content {
-            padding: 30px;
-        }
-        .info-section {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            gap: 30px;
-        }
-        .customer-info, .delivery-info {
-            flex: 1;
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #2d5016;
-        }
-        .section-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #2d5016;
-            margin-bottom: 15px;
-        }
-        .info-line {
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        .payment-info {
-            background: #e6fffa;
-            border: 2px solid #38b2ac;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .items-table th {
-            background: #2d5016;
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-        }
-        .items-table td {
-            padding: 15px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .items-table tr:last-child td {
-            border-bottom: none;
-        }
-        .items-table tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-        .footer {
-            background: #f8f9fa;
-            padding: 20px;
-            text-align: center;
-            border-top: 1px solid #e2e8f0;
-            font-size: 12px;
-            color: #718096;
-        }
-        .total-section {
-            background: #f0fff4;
-            border: 2px solid #68d391;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .total-amount {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2d5016;
-            text-align: center;
-        }
-        @media print {
-            body { background: white; padding: 0; }
-            .container { box-shadow: none; }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo-section">
-                <div class="company-name">🦌 Jagdrevier Weetzen</div>
-                <div class="company-subtitle">Premium Wildfleisch & Jagdspezialitäten</div>
-            </div>
-            <div class="document-info">
-                <div class="document-title">LIEFERSCHEIN</div>
-                <div class="document-number">Nr. ${order.id.slice(0, 8).toUpperCase()}</div>
-            </div>
-        </div>
-
-        <div class="content">
-            <div class="info-section">
-                <div class="customer-info">
-                    <div class="section-title">🏠 Kunde</div>
-                    <div class="info-line"><strong>Name:</strong> ${customerName}</div>
-                    <div class="info-line"><strong>E-Mail:</strong> ${customerEmail}</div>
-                    <div class="info-line"><strong>Telefon:</strong> ${customerPhone}</div>
-                    <div class="info-line"><strong>Adresse:</strong> ${customerAddress}</div>
-                </div>
-                <div class="delivery-info">
-                    <div class="section-title">📅 Abholung</div>
-                    <div class="info-line"><strong>Bestelldatum:</strong> ${orderDate}</div>
-                    <div class="info-line"><strong>Bereitstellung:</strong> ${deliveryDate}</div>
-                    <div class="info-line"><strong>Zahlungsart:</strong> Barzahlung bei Abholung</div>
-                    <div class="info-line"><strong>Status:</strong> ${order.status === 'confirmed' ? 'Bestätigt' : order.status === 'pending' ? 'Bereit zur Abholung' : order.status}</div>
-                </div>
-            </div>
-
-            <div class="payment-info">
-                <strong>💰 Zahlungshinweis:</strong> 
-                Barzahlung bei Abholung der Ware. Bitte halten Sie den entsprechenden Betrag bereit.
-            </div>
-
-            <table class="items-table">
-                <thead>
-                    <tr>
-                        <th>🥩 Artikel</th>
-                        <th style="text-align: center;">📦 Menge</th>
-                        <th>📝 Beschreibung</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${orderItems.map(item => `
-                        <tr>
-                            <td><strong>${item.products_2025_11_07_14_31?.name || 'Unbekanntes Produkt'}</strong></td>
-                            <td style="text-align: center;">${item.quantity} Stück</td>
-                            <td>${item.products_2025_11_07_14_31?.description || 'Keine Beschreibung verfügbar'}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-
-            <div class="total-section">
-                <div class="total-amount">
-                    Gesamtbetrag: €${order.total_amount.toFixed(2)}
-                    <br>
-                    <small style="font-size: 14px; color: #4a5568;">Barzahlung bei Abholung</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p><strong>Jagdrevier Weetzen</strong> | Premium Wildfleisch & Jagdspezialitäten</p>
-            <p>Vielen Dank für Ihr Vertrauen! | Erstellt am ${new Date().toLocaleDateString('de-DE')} um ${new Date().toLocaleTimeString('de-DE')}</p>
-        </div>
-    </div>
-</body>
-</html>`;
+      // Create PDF
+      const pdf = new jsPDF();
       
-      // Create and download the HTML file
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Lieferschein_${order.id.slice(0, 8)}.html`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
+      // Set font
+      pdf.setFont('helvetica');
+      
+      // Header
+      pdf.setFillColor(45, 80, 22); // Dark green
+      pdf.rect(0, 0, 210, 40, 'F');
+      
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(24);
+      pdf.text('🦌 Jagdrevier Weetzen', 20, 20);
+      pdf.setFontSize(12);
+      pdf.text('Premium Wildfleisch & Jagdspezialitäten', 20, 30);
+      
+      pdf.setFontSize(20);
+      pdf.text('LIEFERSCHEIN', 150, 20);
+      pdf.setFontSize(10);
+      pdf.text(`Nr. ${order.id.slice(0, 8).toUpperCase()}`, 150, 30);
+      
+      // Reset text color
+      pdf.setTextColor(0, 0, 0);
+      
+      // Customer info section
+      let yPos = 60;
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('🏠 Kunde', 20, yPos);
+      
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      yPos += 10;
+      pdf.text(`Name: ${customerName}`, 20, yPos);
+      yPos += 7;
+      pdf.text(`E-Mail: ${customerEmail}`, 20, yPos);
+      yPos += 7;
+      pdf.text(`Telefon: ${customerPhone}`, 20, yPos);
+      yPos += 7;
+      pdf.text(`Adresse: ${customerAddress}`, 20, yPos);
+      
+      // Delivery info section
+      let yPosRight = 60;
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('📅 Abholung', 120, yPosRight);
+      
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      yPosRight += 10;
+      pdf.text(`Bestelldatum: ${orderDate}`, 120, yPosRight);
+      yPosRight += 7;
+      pdf.text(`Bereitstellung: ${deliveryDate}`, 120, yPosRight);
+      yPosRight += 7;
+      pdf.text('Zahlungsart: Barzahlung bei Abholung', 120, yPosRight);
+      yPosRight += 7;
+      const statusText = order.status === 'confirmed' ? 'Bestätigt' : order.status === 'pending' ? 'Bereit zur Abholung' : order.status;
+      pdf.text(`Status: ${statusText}`, 120, yPosRight);
+      
+      // Payment info box
+      yPos = Math.max(yPos, yPosRight) + 20;
+      pdf.setFillColor(230, 255, 250); // Light cyan
+      pdf.rect(20, yPos - 5, 170, 20, 'F');
+      pdf.setDrawColor(56, 178, 172); // Cyan border
+      pdf.rect(20, yPos - 5, 170, 20, 'S');
+      
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('💰 Zahlungshinweis:', 25, yPos + 5);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Barzahlung bei Abholung der Ware. Bitte halten Sie den entsprechenden Betrag bereit.', 25, yPos + 12);
+      
+      // Items table
+      yPos += 35;
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      
+      // Table header
+      pdf.setFillColor(45, 80, 22); // Dark green
+      pdf.rect(20, yPos, 170, 10, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.text('🥩 Artikel', 25, yPos + 7);
+      pdf.text('📦 Menge', 100, yPos + 7);
+      pdf.text('📝 Beschreibung', 130, yPos + 7);
+      
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont('helvetica', 'normal');
+      yPos += 15;
+      
+      // Table rows
+      orderItems.forEach((item, index) => {
+        if (index % 2 === 0) {
+          pdf.setFillColor(248, 249, 250); // Light gray
+          pdf.rect(20, yPos - 3, 170, 10, 'F');
+        }
+        
+        const productName = item.products_2025_11_07_14_31?.name || 'Unbekanntes Produkt';
+        const description = item.products_2025_11_07_14_31?.description || 'Keine Beschreibung';
+        
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(productName.substring(0, 30), 25, yPos + 4);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`${item.quantity} Stück`, 100, yPos + 4);
+        pdf.text(description.substring(0, 25), 130, yPos + 4);
+        
+        yPos += 12;
+      });
+      
+      // Total section
+      yPos += 10;
+      pdf.setFillColor(240, 255, 244); // Light green
+      pdf.rect(20, yPos - 5, 170, 25, 'F');
+      pdf.setDrawColor(104, 211, 145); // Green border
+      pdf.rect(20, yPos - 5, 170, 25, 'S');
+      
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`Gesamtbetrag: €${order.total_amount.toFixed(2)}`, 25, yPos + 8);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Barzahlung bei Abholung', 25, yPos + 15);
+      
+      // Footer
+      yPos += 40;
+      pdf.setFontSize(8);
+      pdf.setTextColor(113, 128, 150); // Gray
+      pdf.text('Jagdrevier Weetzen | Premium Wildfleisch & Jagdspezialitäten', 20, yPos);
+      pdf.text(`Vielen Dank für Ihr Vertrauen! | Erstellt am ${new Date().toLocaleDateString('de-DE')} um ${new Date().toLocaleTimeString('de-DE')}`, 20, yPos + 5);
+      
+      // Save PDF
+      pdf.save(`Lieferschein_${order.id.slice(0, 8)}.pdf`);
+      
       toast({
-        title: "Lieferschein erstellt",
-        description: "Der Lieferschein wurde als HTML-Datei heruntergeladen. Öffnen Sie diese in Ihrem Browser und drucken Sie sie als PDF.",
+        title: "PDF-Lieferschein erstellt",
+        description: "Der Lieferschein wurde als PDF-Datei heruntergeladen.",
       });
     } catch (error: any) {
       console.error('Error generating delivery note:', error);
@@ -807,6 +712,8 @@ const AdminPage = () => {
       });
     }
   };
+
+  // Remove old HTML generation code - keeping only the PDF version
 
   // Fallback function for direct HTML generation
   const generateDeliveryNoteLocal = (order: Order) => {
