@@ -66,12 +66,12 @@ const Navbar = () => {
 
   const navigationItems = [
     {
-      title: 'Vereinsaktivitäten',
+      title: 'Unser Revier',
       items: [
         { title: 'Jagdhunde im Revier', href: '/jagdhunde', description: 'Ausbildung und Einsatz unserer Jagdhunde' },
         { title: 'Rehkitzrettung', href: '/rehkitzrettung', description: 'Moderne Drohnen-Technologie zum Schutz der Rehkitze' },
         { title: 'Weetzer Stapelteiche', href: '/stapelteiche', description: 'Unsere Gewässer und Fischbestand' },
-        { title: 'Unser Revier', href: '/revier', description: 'Revierbeschreibung und Wildbestand' },
+        { title: 'Revierbeschreibung', href: '/revier', description: 'Revierbeschreibung und Wildbestand' },
         { title: 'Prädatorenmanagement', href: '/praedatoren', description: 'Bestandsregulierung und Wildtiermanagement' },
       ]
     }
@@ -189,7 +189,7 @@ const Navbar = () => {
                     </Link>
                     
                     <div className="space-y-2">
-                      <h3 className="text-lg font-medium">Vereinsaktivitäten</h3>
+                      <h3 className="text-lg font-medium">Unser Revier</h3>
                       {navigationItems[0].items.map((item) => (
                         <Link
                           key={item.title}

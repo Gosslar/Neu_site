@@ -60,9 +60,9 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Vereinsaktivitäten */}
+          {/* Unser Revier */}
           <div>
-            <h3 className="font-semibold mb-4">Unser Verein</h3>
+            <h3 className="font-semibold mb-4">Unser Revier</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/jagdhunde" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
