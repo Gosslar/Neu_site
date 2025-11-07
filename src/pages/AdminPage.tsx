@@ -42,6 +42,8 @@ interface Order {
   user_id: string;
   total_amount: number;
   status: string;
+  payment_method: string;
+  payment_status: string;
   created_at: string;
   profiles: {
     full_name: string;
@@ -1080,6 +1082,7 @@ const AdminPage = () => {
                       <TableHead>Kunde</TableHead>
                       <TableHead>Datum</TableHead>
                       <TableHead>Betrag</TableHead>
+                      <TableHead>Zahlung</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Aktionen</TableHead>
                     </TableRow>
@@ -1100,6 +1103,16 @@ const AdminPage = () => {
                           {new Date(order.created_at).toLocaleDateString('de-DE')}
                         </TableCell>
                         <TableCell>€{order.total_amount.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <Badge variant={order.payment_method === 'cash' ? 'secondary' : 'default'}>
+                              {order.payment_method === 'cash' ? 'Barzahlung' : 'Kreditkarte'}
+                            </Badge>
+                            <Badge variant={order.payment_status === 'completed' ? 'default' : 'destructive'} className="text-xs">
+                              {order.payment_status === 'completed' ? 'Bezahlt' : 'Ausstehend'}
+                            </Badge>
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <Select
                             value={order.status}

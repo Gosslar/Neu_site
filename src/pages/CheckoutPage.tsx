@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, CreditCard, Lock } from 'lucide-react';
+import { ArrowLeft, CreditCard, Lock, Banknote } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/hooks/use-toast';
 
 // Initialize Stripe
@@ -31,6 +32,7 @@ const CheckoutForm = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
   const [formData, setFormData] = useState<CheckoutFormData>({
     fullName: '',
     email: user?.email || '',
@@ -49,8 +51,73 @@ const CheckoutForm = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleCashPayment = async () => {
+    if (!user) {
+      toast({
+        title: "Fehler",
+        description: "Sie müssen angemeldet sein, um eine Bestellung aufzugeben.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.fullName || !formData.email || !formData.phone) {
+      toast({
+        title: "Fehler",
+        description: "Bitte füllen Sie alle Pflichtfelder aus.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Create order directly for cash payment
+      const { data: orderData, error: orderError } = await supabase.functions.invoke(
+        'process_order_enhanced_2025_11_07_14_31',
+        {
+          body: {
+            user_id: user.id,
+            items: items,
+            total_amount: getTotalPrice(),
+            customer_info: formData,
+            payment_method: 'cash',
+            payment_status: 'pending'
+          }
+        }
+      );
+
+      if (orderError) {
+        throw new Error(orderError.message || 'Fehler beim Erstellen der Bestellung');
+      }
+
+      toast({
+        title: "Bestellung erfolgreich!",
+        description: "Ihre Bestellung wurde aufgenommen. Sie können bei Abholung bar bezahlen.",
+      });
+
+      clearCart();
+      navigate('/shop');
+    } catch (error: any) {
+      console.error('Cash payment error:', error);
+      toast({
+        title: "Fehler bei der Bestellung",
+        description: error.message || "Ein unerwarteter Fehler ist aufgetreten.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (paymentMethod === 'cash') {
+      handleCashPayment();
+      return;
+    }
 
     if (!stripe || !elements || !user) {
       toast({
@@ -137,13 +204,16 @@ const CheckoutForm = () => {
         }));
 
         const { error: orderError } = await supabase.functions.invoke(
-          'process_order_2025_11_07_14_31',
+          'process_order_enhanced_2025_11_07_14_31',
           {
             body: {
-              payment_intent_id: paymentIntent.id,
-              cart_items: cartItems,
-              shipping_address: formData.address,
-              total_amount: getTotalPrice()
+              user_id: user.id,
+              items: items,
+              total_amount: getTotalPrice(),
+              customer_info: formData,
+              payment_method: 'card',
+              payment_status: 'completed',
+              payment_intent_id: paymentIntent.id
             }
           }
         );
@@ -235,16 +305,48 @@ const CheckoutForm = () => {
         </CardContent>
       </Card>
 
-      {/* Payment Information */}
+      {/* Payment Method Selection */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <CreditCard className="mr-2 h-5 w-5" />
-            Zahlungsinformationen
-          </CardTitle>
+          <CardTitle>Zahlungsmethode wählen</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <RadioGroup value={paymentMethod} onValueChange={(value: 'card' | 'cash') => setPaymentMethod(value)}>
+            <div className="flex items-center space-x-2 p-4 border rounded-lg">
+              <RadioGroupItem value="card" id="card" />
+              <Label htmlFor="card" className="flex items-center cursor-pointer flex-1">
+                <CreditCard className="mr-2 h-5 w-5" />
+                <div>
+                  <div className="font-medium">Kreditkarte</div>
+                  <div className="text-sm text-muted-foreground">Sichere Online-Zahlung mit Stripe</div>
+                </div>
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2 p-4 border rounded-lg">
+              <RadioGroupItem value="cash" id="cash" />
+              <Label htmlFor="cash" className="flex items-center cursor-pointer flex-1">
+                <Banknote className="mr-2 h-5 w-5" />
+                <div>
+                  <div className="font-medium">Barzahlung bei Abholung</div>
+                  <div className="text-sm text-muted-foreground">Zahlung vor Ort bei Abholung der Ware</div>
+                </div>
+              </Label>
+            </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
+
+      {/* Payment Information */}
+      {paymentMethod === 'card' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <CreditCard className="mr-2 h-5 w-5" />
+              Kreditkarteninformationen
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
             <div>
               <Label>Kreditkarteninformationen *</Label>
               <div className="border rounded-md p-3 bg-background">
@@ -276,21 +378,24 @@ const CheckoutForm = () => {
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Submit Button */}
       <Button
         type="submit"
         size="lg"
         className="w-full"
-        disabled={!stripe || loading || items.length === 0}
+        disabled={(paymentMethod === 'card' && !stripe) || loading || items.length === 0}
       >
         {loading ? (
           <div className="flex items-center">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-            Zahlung wird verarbeitet...
+            {paymentMethod === 'cash' ? 'Bestellung wird erstellt...' : 'Zahlung wird verarbeitet...'}
           </div>
         ) : (
-          `Jetzt bezahlen - €${getTotalPrice().toFixed(2)}`
+          paymentMethod === 'cash' 
+            ? `Bestellung aufgeben - €${getTotalPrice().toFixed(2)} (Barzahlung bei Abholung)`
+            : `Jetzt bezahlen - €${getTotalPrice().toFixed(2)}`
         )}
       </Button>
     </form>
