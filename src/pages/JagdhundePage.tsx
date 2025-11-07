@@ -188,59 +188,7 @@ const JagdhundePage = () => {
           </div>
         </section>
 
-        {/* Prüfungen und Qualifikationen */}
-        <section className="mb-16">
-          <Card className="bg-muted/30">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Prüfungen und Qualifikationen</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="text-center">
-                  <Award className="h-12 w-12 text-primary mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">VJP - Verbandsjugendprüfung</h3>
-                  <p className="text-muted-foreground">
-                    Erste Leistungsprüfung für junge Hunde zur Bewertung der Grundanlagen
-                  </p>
-                </div>
-                <div className="text-center">
-                  <Award className="h-12 w-12 text-primary mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">HZP - Herbstzuchtprüfung</h3>
-                  <p className="text-muted-foreground">
-                    Umfassende Prüfung der jagdlichen Fähigkeiten und Arbeitsweise
-                  </p>
-                </div>
-                <div className="text-center">
-                  <Award className="h-12 w-12 text-primary mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">VGP - Verbandsgebrauchsprüfung</h3>
-                  <p className="text-muted-foreground">
-                    Höchste Prüfungsstufe für vollständig ausgebildete Jagdhunde
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
 
-        {/* Contact Section */}
-        <section className="text-center">
-          <Card className="bg-primary text-primary-foreground">
-            <CardHeader>
-              <CardTitle className="text-2xl">Interesse an der Hundearbeit?</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-lg mb-6">
-                Möchten Sie mehr über unsere Jagdhunde erfahren oder sich über Ausbildungsmöglichkeiten informieren? 
-                Kontaktieren Sie unsere erfahrenen Hundeführer.
-              </p>
-              <div className="space-y-2">
-                <p><strong>Hundeobmann:</strong> Hans Müller</p>
-                <p><strong>Telefon:</strong> +49 (0) 123 456789</p>
-                <p><strong>E-Mail:</strong> hunde@jagd-weetzen.de</p>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
       </div>
     </div>
   );
