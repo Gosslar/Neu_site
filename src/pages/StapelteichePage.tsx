@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Waves, Fish, Leaf, Calendar, Camera, Users, MapPin, Binoculars, TreePine, Bird } from 'lucide-react';
+import { Waves, Leaf, Calendar, Camera, Users, MapPin, Binoculars, TreePine, Bird } from 'lucide-react';
 
 const StapelteichePage = () => {
   const areaData = [
@@ -288,8 +288,8 @@ const StapelteichePage = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Fish className="h-6 w-6 text-blue-600" />
-                  Weitere Fauna
+                  <Users className="h-6 w-6 text-blue-600" />
+                  Weitere Tierwelt
                 </CardTitle>
               </CardHeader>
               <CardContent>
