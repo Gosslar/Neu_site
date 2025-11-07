@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,12 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, CreditCard, Lock, Banknote } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ArrowLeft, Banknote } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-
-// Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
 
 interface CheckoutFormData {
   fullName: string;
@@ -26,13 +20,10 @@ interface CheckoutFormData {
 }
 
 const CheckoutForm = () => {
-  const stripe = useStripe();
-  const elements = useElements();
   const { items, getTotalPrice, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
   const [formData, setFormData] = useState<CheckoutFormData>({
     fullName: '',
     email: user?.email || '',
@@ -51,8 +42,8 @@ const CheckoutForm = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCashPayment = async () => {
-    // Guest orders are now allowed - no login required
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
 
     if (!formData.fullName || !formData.email || !formData.phone) {
       toast({
@@ -66,17 +57,15 @@ const CheckoutForm = () => {
     setLoading(true);
 
     try {
-      // Create order directly for cash payment
+      // Create order with cash payment
       const { data: orderData, error: orderError } = await supabase.functions.invoke(
-        'process_order_enhanced_2025_11_07_14_31',
+        'process_cash_order_2025_11_07_18_05',
         {
           body: {
             user_id: user?.id || null, // Allow guest orders
             items: items,
             total_amount: getTotalPrice(),
-            customer_info: formData,
-            payment_method: 'cash',
-            payment_status: 'pending'
+            customer_info: formData
           }
         }
       );
@@ -93,7 +82,7 @@ const CheckoutForm = () => {
       clearCart();
       navigate('/shop');
     } catch (error: any) {
-      console.error('Cash payment error:', error);
+      console.error('Order error:', error);
       toast({
         title: "Fehler bei der Bestellung",
         description: error.message || "Ein unerwarteter Fehler ist aufgetreten.",
@@ -104,151 +93,48 @@ const CheckoutForm = () => {
     }
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    if (paymentMethod === 'cash') {
-      handleCashPayment();
-      return;
-    }
-
-    if (!stripe || !elements) {
-      toast({
-        title: "Fehler",
-        description: "Zahlungssystem wird initialisiert.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) {
-      toast({
-        title: "Fehler",
-        description: "Kreditkartenformular wurde nicht korrekt geladen.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (items.length === 0) {
-      toast({
-        title: "Warenkorb leer",
-        description: "Ihr Warenkorb ist leer.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // Create payment intent
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke(
-        'create_payment_intent_2025_11_07_14_31',
-        {
-          body: {
-            amount: getTotalPrice(),
-            currency: 'eur',
-            metadata: {
-              user_id: user.id,
-              order_type: 'webshop'
-            }
-          }
-        }
-      );
-
-      if (paymentError) {
-        throw new Error(paymentError.message);
-      }
-
-      if (!paymentData?.client_secret) {
-        throw new Error('Ungültige Zahlungskonfiguration vom Server erhalten.');
-      }
-
-      // Confirm payment
-      const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
-        paymentData.client_secret,
-        {
-          payment_method: {
-            card: cardElement,
-            billing_details: {
-              name: formData.fullName,
-              email: formData.email,
-              phone: formData.phone,
-              address: {
-                line1: formData.address,
-              },
-            },
-          },
-        }
-      );
-
-      if (stripeError) {
-        throw new Error(stripeError.message || 'Zahlungsverarbeitung fehlgeschlagen');
-      }
-
-      if (paymentIntent?.status === 'succeeded') {
-        // Process order
-        const cartItems = items.map(item => ({
-          product_id: item.product_id,
-          quantity: item.quantity,
-          price: item.product.price
-        }));
-
-        const { error: orderError } = await supabase.functions.invoke(
-          'process_order_enhanced_2025_11_07_14_31',
-          {
-            body: {
-              user_id: user?.id || null, // Allow guest orders
-              items: items,
-              total_amount: getTotalPrice(),
-              customer_info: formData,
-              payment_method: 'card',
-              payment_status: 'completed',
-              payment_intent_id: paymentIntent.id
-            }
-          }
-        );
-
-        if (orderError) {
-          console.error('Order processing error:', orderError);
-          toast({
-            title: "Warnung",
-            description: "Zahlung erfolgreich, aber Bestellbestätigung fehlgeschlagen. Bitte kontaktieren Sie uns.",
-            variant: "destructive",
-          });
-        } else {
-          await clearCart();
-          toast({
-            title: "Bestellung erfolgreich!",
-            description: "Ihre Zahlung wurde verarbeitet und die Bestellung wurde aufgegeben.",
-          });
-        }
-
-        navigate('/profile');
-      } else {
-        throw new Error(`Zahlungsstatus abnormal: ${paymentIntent?.status}`);
-      }
-
-    } catch (error: any) {
-      console.error('Checkout error:', error);
-      toast({
-        title: "Zahlungsfehler",
-        description: error.message || 'Ein unbekannter Fehler ist aufgetreten.',
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Shipping Information */}
+      {/* Order Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Lieferinformationen</CardTitle>
+          <CardTitle>Bestellübersicht</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {items.map((item) => (
+              <div key={item.id} className="flex justify-between items-center">
+                <div className="flex items-center space-x-4">
+                  <img
+                    src={item.product.image_url}
+                    alt={item.product.name}
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                  <div>
+                    <h3 className="font-medium">{item.product.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {item.quantity} × €{item.product.price.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                <span className="font-medium">
+                  €{(item.product.price * item.quantity).toFixed(2)}
+                </span>
+              </div>
+            ))}
+            <Separator />
+            <div className="flex justify-between text-lg font-semibold">
+              <span>Gesamt:</span>
+              <span>€{getTotalPrice().toFixed(2)}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Customer Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Kundendaten</CardTitle>
           {!user && (
             <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-2">
               <p className="text-sm text-blue-800">
@@ -258,8 +144,8 @@ const CheckoutForm = () => {
             </div>
           )}
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="fullName">Vollständiger Name *</Label>
               <Input
@@ -283,120 +169,71 @@ const CheckoutForm = () => {
             </div>
           </div>
           <div>
-            <Label htmlFor="phone">Telefonnummer</Label>
+            <Label htmlFor="phone">Telefonnummer *</Label>
             <Input
               id="phone"
               name="phone"
               type="tel"
               value={formData.phone}
               onChange={handleInputChange}
+              required
             />
           </div>
           <div>
-            <Label htmlFor="address">Lieferadresse *</Label>
+            <Label htmlFor="address">Adresse</Label>
             <Textarea
               id="address"
               name="address"
               value={formData.address}
               onChange={handleInputChange}
-              placeholder="Straße, Hausnummer, PLZ, Ort"
-              required
+              placeholder="Straße, Hausnummer, PLZ Ort"
+              rows={3}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Payment Method Selection */}
+      {/* Payment Information */}
       <Card>
         <CardHeader>
-          <CardTitle>Zahlungsmethode wählen</CardTitle>
+          <CardTitle className="flex items-center">
+            <Banknote className="mr-2 h-5 w-5" />
+            Zahlungsart
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <RadioGroup value={paymentMethod} onValueChange={(value: 'card' | 'cash') => setPaymentMethod(value)}>
-            <div className="flex items-center space-x-2 p-4 border rounded-lg">
-              <RadioGroupItem value="card" id="card" />
-              <Label htmlFor="card" className="flex items-center cursor-pointer flex-1">
-                <CreditCard className="mr-2 h-5 w-5" />
-                <div>
-                  <div className="font-medium">Kreditkarte</div>
-                  <div className="text-sm text-muted-foreground">Sichere Online-Zahlung mit Stripe</div>
-                </div>
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2 p-4 border rounded-lg">
-              <RadioGroupItem value="cash" id="cash" />
-              <Label htmlFor="cash" className="flex items-center cursor-pointer flex-1">
-                <Banknote className="mr-2 h-5 w-5" />
-                <div>
-                  <div className="font-medium">Barzahlung bei Abholung</div>
-                  <div className="text-sm text-muted-foreground">Zahlung vor Ort bei Abholung der Ware</div>
-                </div>
-              </Label>
-            </div>
-          </RadioGroup>
-        </CardContent>
-      </Card>
-
-      {/* Payment Information */}
-      {paymentMethod === 'card' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <CreditCard className="mr-2 h-5 w-5" />
-              Kreditkarteninformationen
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-            <div>
-              <Label>Kreditkarteninformationen *</Label>
-              <div className="border rounded-md p-3 bg-background">
-                <CardElement
-                  options={{
-                    style: {
-                      base: {
-                        fontSize: '16px',
-                        color: 'hsl(var(--foreground))',
-                        '::placeholder': {
-                          color: 'hsl(var(--muted-foreground))',
-                        },
-                      },
-                      invalid: {
-                        color: 'hsl(var(--destructive))',
-                      },
-                    },
-                  }}
-                />
+          <div className="flex items-center space-x-2 p-4 border rounded-lg bg-green-50 border-green-200">
+            <Banknote className="h-5 w-5 text-green-600" />
+            <div className="flex-1">
+              <div className="font-medium text-green-800">Barzahlung bei Abholung</div>
+              <div className="text-sm text-green-600">
+                Zahlung vor Ort bei Abholung der Ware. Keine Vorauszahlung erforderlich.
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Testkarte: 4242 4242 4242 4242 | Ablauf: Beliebiges zukünftiges Datum | CVC: Beliebige 3 Ziffern
-              </p>
             </div>
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Lock className="mr-2 h-4 w-4" />
-              Ihre Zahlungsinformationen sind sicher verschlüsselt
-            </div>
+          </div>
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+            <p className="text-sm text-amber-800">
+              <strong>💡 Hinweis:</strong> Nach Ihrer Bestellung erhalten Sie eine Bestätigung. 
+              Die Ware wird für Sie bereitgestellt und Sie bezahlen bei der Abholung.
+            </p>
           </div>
         </CardContent>
       </Card>
-      )}
 
       {/* Submit Button */}
       <Button
         type="submit"
         size="lg"
         className="w-full"
-        disabled={(paymentMethod === 'card' && !stripe) || loading || items.length === 0}
+        disabled={loading || items.length === 0}
       >
         {loading ? (
           <div className="flex items-center">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-            {paymentMethod === 'cash' ? 'Bestellung wird erstellt...' : 'Zahlung wird verarbeitet...'}
+            Bestellung wird erstellt...
           </div>
         ) : (
-          paymentMethod === 'cash' 
-            ? `Bestellung aufgeben - €${getTotalPrice().toFixed(2)} (Barzahlung bei Abholung)`
-            : `Jetzt bezahlen - €${getTotalPrice().toFixed(2)}`
+          `Bestellung aufgeben - €${getTotalPrice().toFixed(2)} (Barzahlung bei Abholung)`
         )}
       </Button>
     </form>
@@ -404,53 +241,42 @@ const CheckoutForm = () => {
 };
 
 const CheckoutPage = () => {
-  const { items, getTotalPrice, getTotalItems } = useCart();
-  const { user } = useAuth();
+  const { items } = useCart();
   const navigate = useNavigate();
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle>Anmeldung erforderlich</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-muted-foreground">
-              Bitte melden Sie sich an, um eine Bestellung aufzugeben.
-            </p>
-            <Button onClick={() => navigate('/auth')} className="w-full">
-              Anmelden
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle>Warenkorb ist leer</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-muted-foreground">
-              Fügen Sie Artikel zu Ihrem Warenkorb hinzu, bevor Sie zur Kasse gehen.
-            </p>
-            <Button onClick={() => navigate('/shop')} className="w-full">
-              Jetzt einkaufen
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/shop')}
+            className="mb-8"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Zurück zum Shop
+          </Button>
+
+          <Card className="text-center py-12">
+            <CardContent>
+              <Banknote className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-2xl font-bold mb-4">Ihr Warenkorb ist leer</h2>
+              <p className="text-muted-foreground mb-6">
+                Fügen Sie Artikel zu Ihrem Warenkorb hinzu, um eine Bestellung aufzugeben.
+              </p>
+              <Button onClick={() => navigate('/shop')} size="lg">
+                Jetzt einkaufen
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button
           variant="ghost"
           onClick={() => navigate('/cart')}
@@ -460,50 +286,14 @@ const CheckoutPage = () => {
           Zurück zum Warenkorb
         </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Checkout Form */}
-          <div className="lg:col-span-2">
-            <h1 className="text-3xl font-bold mb-6">Kasse</h1>
-            <Elements stripe={stripePromise}>
-              <CheckoutForm />
-            </Elements>
-          </div>
-
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-4">
-              <CardHeader>
-                <CardTitle>Bestellübersicht</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex justify-between text-sm">
-                      <span className="flex-1">
-                        {item.product.name} × {item.quantity}
-                      </span>
-                      <span>€{(item.product.price * item.quantity).toFixed(2)}</span>
-                    </div>
-                  ))}
-                </div>
-                <Separator />
-                <div className="flex justify-between">
-                  <span>Zwischensumme ({getTotalItems()} Artikel):</span>
-                  <span>€{getTotalPrice().toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Versand:</span>
-                  <span>Kostenlos</span>
-                </div>
-                <Separator />
-                <div className="flex justify-between text-lg font-semibold">
-                  <span>Gesamt:</span>
-                  <span>€{getTotalPrice().toFixed(2)}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Kasse</h1>
+          <p className="text-muted-foreground">
+            Vervollständigen Sie Ihre Bestellung mit Barzahlung bei Abholung
+          </p>
         </div>
+
+        <CheckoutForm />
       </div>
     </div>
   );

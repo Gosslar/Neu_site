@@ -534,9 +534,9 @@ const AdminPage = () => {
   const generateDeliveryNote = async (order: Order) => {
     try {
       const { data, error } = await supabase.functions.invoke(
-        'generate_delivery_note_2025_11_07_14_31',
+        'generate_cash_delivery_note_2025_11_07_18_05',
         {
-          body: { order }
+          body: { order_id: order.id }
         }
       );
 
@@ -545,7 +545,7 @@ const AdminPage = () => {
       }
 
       // Create and download the HTML file
-      const blob = new Blob([data.html], { type: 'text/html' });
+      const blob = new Blob([data], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
