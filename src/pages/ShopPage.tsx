@@ -281,16 +281,6 @@ const ShopPage = () => {
                             alt={product.name}
                             className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                           />
-                          {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
-                            <Badge className="absolute top-3 right-3 bg-orange-500 text-white shadow-md">
-                              Nur noch {product.stock_quantity}
-                            </Badge>
-                          )}
-                          {product.stock_quantity === 0 && (
-                            <Badge className="absolute top-3 right-3 bg-red-500 text-white shadow-md">
-                              Ausverkauft
-                            </Badge>
-                          )}
                         </div>
                       </Link>
                       
