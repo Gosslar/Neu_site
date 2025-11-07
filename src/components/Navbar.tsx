@@ -153,11 +153,9 @@ const Navbar = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/profile">Profil</Link>
                   </DropdownMenuItem>
-                  {isAdmin && (
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin">Admin</Link>
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin">Admin</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     Abmelden
