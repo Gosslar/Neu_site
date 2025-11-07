@@ -42,7 +42,7 @@ coverage/
 .nyc_output/
 
 # --- Build outputs / caches ---
-# dist/ - Include dist for GitHub Pages deployment
+dist/
 build/
 electron-dist/
 dist-electron/

@@ -185,19 +185,29 @@ const ShopPage = () => {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, index) => (
-              <Card key={index} className="overflow-hidden">
+              <Card key={index} className="overflow-hidden h-full flex flex-col">
                 <Skeleton className="aspect-square w-full" />
-                <CardHeader>
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-2/3" />
-                </CardContent>
-                <CardFooter>
-                  <Skeleton className="h-10 w-full" />
-                </CardFooter>
+                <div className="flex flex-col flex-1">
+                  <CardHeader className="pb-3">
+                    <div className="space-y-2">
+                      <Skeleton className="h-6 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-1 pb-3">
+                    <div className="space-y-2 mb-4">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-2/3" />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <Skeleton className="h-8 w-20" />
+                      <Skeleton className="h-5 w-16" />
+                    </div>
+                  </CardContent>
+                  <CardFooter className="pt-0 mt-auto">
+                    <Skeleton className="h-10 w-full" />
+                  </CardFooter>
+                </div>
               </Card>
             ))}
           </div>
@@ -210,8 +220,8 @@ const ShopPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <Link to={`/product/${product.id}`}>
+              <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
+                <Link to={`/product/${product.id}`} className="block">
                   <div className="aspect-square relative overflow-hidden">
                     <img
                       src={product.image_url}
@@ -219,47 +229,58 @@ const ShopPage = () => {
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
                     {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
-                      <Badge className="absolute top-2 right-2 bg-orange-500">
+                      <Badge className="absolute top-3 right-3 bg-orange-500 text-white shadow-md">
                         Nur noch {product.stock_quantity}
                       </Badge>
                     )}
                     {product.stock_quantity === 0 && (
-                      <Badge className="absolute top-2 right-2 bg-red-500">
+                      <Badge className="absolute top-3 right-3 bg-red-500 text-white shadow-md">
                         Ausverkauft
                       </Badge>
                     )}
                   </div>
                 </Link>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
-                      <Badge variant="secondary" className="mt-1">
+                
+                <div className="flex flex-col flex-1">
+                  <CardHeader className="pb-3">
+                    <div className="space-y-2">
+                      <CardTitle className="text-lg font-semibold line-clamp-2 leading-tight">
+                        {product.name}
+                      </CardTitle>
+                      <Badge variant="secondary" className="w-fit text-xs">
                         {product.category.name}
                       </Badge>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                    {product.description}
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-2xl font-bold text-primary">
-                      €{product.price.toFixed(2)}
-                    </span>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    onClick={() => handleAddToCart(product.id)}
-                    disabled={product.stock_quantity === 0}
-                    className="w-full"
-                  >
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    {product.stock_quantity === 0 ? 'Ausverkauft' : 'In den Warenkorb'}
-                  </Button>
-                </CardFooter>
+                  </CardHeader>
+                  
+                  <CardContent className="flex-1 pb-3">
+                    <p className="text-sm text-muted-foreground line-clamp-3 mb-4 leading-relaxed">
+                      {product.description}
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-2xl font-bold text-primary">
+                        €{product.price.toFixed(2)}
+                      </span>
+                      {product.stock_quantity > 5 && (
+                        <Badge variant="outline" className="text-xs text-green-600 border-green-200">
+                          Verfügbar
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                  
+                  <CardFooter className="pt-0 mt-auto">
+                    <Button
+                      onClick={() => handleAddToCart(product.id)}
+                      disabled={product.stock_quantity === 0}
+                      className="w-full"
+                      variant={product.stock_quantity === 0 ? "secondary" : "default"}
+                    >
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      {product.stock_quantity === 0 ? 'Ausverkauft' : 'In den Warenkorb'}
+                    </Button>
+                  </CardFooter>
+                </div>
               </Card>
             ))}
           </div>
