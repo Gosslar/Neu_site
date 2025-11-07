@@ -66,7 +66,7 @@ const Navbar = () => {
 
   const navigationItems = [
     {
-      title: 'Unser Revier',
+      title: 'Was wir machen',
       items: [
         { title: 'Jagdhunde im Revier', href: '/jagdhunde', description: 'Ausbildung und Einsatz unserer Jagdhunde' },
         { title: 'Rehkitzrettung', href: '/rehkitzrettung', description: 'Moderne Drohnen-Technologie zum Schutz der Rehkitze' },
@@ -189,7 +189,7 @@ const Navbar = () => {
                     </Link>
                     
                     <div className="space-y-2">
-                      <h3 className="text-lg font-medium">Unser Revier</h3>
+                      <h3 className="text-lg font-medium">Was wir machen</h3>
                       {navigationItems[0].items.map((item) => (
                         <Link
                           key={item.title}
