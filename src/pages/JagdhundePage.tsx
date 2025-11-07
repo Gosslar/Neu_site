@@ -6,22 +6,28 @@ import { TreePine, Award, Users, Target, Heart } from 'lucide-react';
 const JagdhundePage = () => {
   const dogBreeds = [
     {
-      name: 'Deutsch Kurzhaar',
-      description: 'Vielseitiger Vorstehhund mit ausgezeichneter Nase und hoher Arbeitsbereitschaft.',
-      specialties: ['Vorstehen', 'Apportieren', 'Wasserarbeit'],
+      name: 'Brandlbracke',
+      description: 'Österreichische Bracke mit ausgezeichneter Spurlaut und Finderwillen. Spezialist für schwieriges Gelände.',
+      specialties: ['Schweißarbeit', 'Nachsuche', 'Spurlaut', 'Stöberjagd'],
       image: '/images/hunting_dogs_3.jpeg',
+      origin: 'Österreich',
+      certification: 'VGP geprüft'
     },
     {
-      name: 'Deutsch Drahthaar',
-      description: 'Robuster Allrounder mit wetterbeständigem Fell für alle Jagdsituationen.',
-      specialties: ['Nachsuche', 'Stöbern', 'Schweißarbeit'],
+      name: 'Alpenländische Dachsbracke',
+      description: 'Robuste Bracke aus den Alpen. Hervorragend für Nachsuche und Schweißarbeit in schwierigem Terrain.',
+      specialties: ['Schweißarbeit', 'Nachsuche', 'Dachsjagd', 'Spurarbeit'],
       image: '/images/hunting_dogs_1.webp',
+      origin: 'Österreich/Bayern',
+      certification: 'VGP geprüft'
     },
     {
-      name: 'Labrador Retriever',
-      description: 'Spezialist für Wasserarbeit und Apportieren mit sanftem Maul.',
-      specialties: ['Wasserarbeit', 'Apportieren', 'Dummytraining'],
+      name: 'Deutsche Bracke',
+      description: 'Traditionelle deutsche Bracke mit hervorragender Nase und ausdauerndem Spurwillen.',
+      specialties: ['Schweißarbeit', 'Nachsuche', 'Spurlaut', 'Meutejagd'],
       image: '/images/hunting_dogs_2.jpeg',
+      origin: 'Deutschland',
+      certification: 'VGP geprüft'
     },
   ];
 
@@ -65,7 +71,7 @@ const JagdhundePage = () => {
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Unsere vierbeinigen Partner sind das Herzstück einer erfolgreichen und waidgerechten Jagd. 
-            Erfahren Sie mehr über die Ausbildung und den Einsatz unserer Jagdhunde.
+            <strong>Ausschließlich geprüfte Jagdgebrauchshunde</strong> kommen bei uns zum Einsatz.
           </p>
         </div>
 
@@ -88,7 +94,10 @@ const JagdhundePage = () => {
 
         {/* Dog Breeds Section */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Unsere Hunderassen</h2>
+          <h2 className="text-3xl font-bold text-center mb-8">Unsere geprüften Jagdgebrauchshunde</h2>
+          <p className="text-center text-muted-foreground mb-8 max-w-3xl mx-auto">
+            Alle unsere Jagdhunde sind VGP-geprüfte Bracken mit hervorragenden Leistungen in der Schweißarbeit und Nachsuche.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {dogBreeds.map((breed, index) => (
               <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -100,7 +109,15 @@ const JagdhundePage = () => {
                   />
                 </div>
                 <CardHeader>
-                  <CardTitle className="text-xl">{breed.name}</CardTitle>
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-xl">{breed.name}</CardTitle>
+                    <Badge variant="outline" className="text-xs">
+                      {breed.certification}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Herkunft: {breed.origin}
+                  </p>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">{breed.description}</p>
