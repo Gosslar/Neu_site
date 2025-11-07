@@ -56,11 +56,24 @@ interface Order {
   }[];
 }
 
+interface User {
+  id: string;
+  email: string;
+  created_at: string;
+  profile: {
+    full_name: string;
+    phone: string;
+    address: string;
+    is_admin: boolean;
+  } | null;
+}
+
 const AdminPage = () => {
   const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -124,6 +137,7 @@ const AdminPage = () => {
       fetchProducts(),
       fetchCategories(),
       fetchOrders(),
+      fetchUsers(),
     ]);
   };
 
@@ -189,6 +203,47 @@ const AdminPage = () => {
       console.error('Error fetching orders:', error);
       toast({
         title: "Fehler beim Laden der Bestellungen",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles_2025_11_07_14_31')
+        .select(`
+          id,
+          email,
+          full_name,
+          phone,
+          address,
+          is_admin,
+          created_at
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Transform data to match User interface
+      const transformedUsers = data?.map(profile => ({
+        id: profile.id,
+        email: profile.email,
+        created_at: profile.created_at,
+        profile: {
+          full_name: profile.full_name || '',
+          phone: profile.phone || '',
+          address: profile.address || '',
+          is_admin: profile.is_admin || false,
+        }
+      })) || [];
+      
+      setUsers(transformedUsers);
+    } catch (error: any) {
+      console.error('Error fetching users:', error);
+      toast({
+        title: "Fehler beim Laden der Benutzer",
         description: error.message,
         variant: "destructive",
       });
@@ -393,6 +448,51 @@ const AdminPage = () => {
     }
   };
 
+  const toggleUserAdminStatus = async (userId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('profiles_2025_11_07_14_31')
+        .update({ is_admin: !currentStatus })
+        .eq('id', userId);
+
+      if (error) throw error;
+      toast({ 
+        title: !currentStatus ? "Admin-Rechte vergeben" : "Admin-Rechte entfernt",
+        description: !currentStatus ? "Benutzer ist jetzt Administrator" : "Benutzer ist jetzt normaler Benutzer"
+      });
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error updating user admin status:', error);
+      toast({
+        title: "Fehler beim Aktualisieren",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteUser = async (userId: string) => {
+    try {
+      // First delete the profile
+      const { error: profileError } = await supabase
+        .from('profiles_2025_11_07_14_31')
+        .delete()
+        .eq('id', userId);
+
+      if (profileError) throw profileError;
+
+      toast({ title: "Benutzerprofil gelöscht" });
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: "Fehler beim Löschen",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -448,6 +548,8 @@ const AdminPage = () => {
   const totalOrders = orders.length;
   const totalRevenue = orders.reduce((sum, order) => sum + order.total_amount, 0);
   const lowStockProducts = products.filter(p => p.stock_quantity <= 5).length;
+  const totalUsers = users.length;
+  const adminUsers = users.filter(u => u.profile?.is_admin).length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -500,23 +602,24 @@ const AdminPage = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Kategorien</CardTitle>
+              <CardTitle className="text-sm font-medium">Benutzer</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{categories.length}</div>
+              <div className="text-2xl font-bold">{totalUsers}</div>
               <p className="text-xs text-muted-foreground">
-                Aktive Kategorien
+                {adminUsers} Administratoren
               </p>
             </CardContent>
           </Card>
         </div>
 
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="products">Produkte</TabsTrigger>
             <TabsTrigger value="categories">Kategorien</TabsTrigger>
             <TabsTrigger value="orders">Bestellungen</TabsTrigger>
+            <TabsTrigger value="users">Benutzer</TabsTrigger>
           </TabsList>
 
           {/* Products Tab */}
@@ -1051,6 +1154,79 @@ const AdminPage = () => {
                               </div>
                             </DialogContent>
                           </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Users Tab */}
+          <TabsContent value="users">
+            <Card>
+              <CardHeader>
+                <CardTitle>Benutzerverwaltung</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>E-Mail</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Registriert</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Aktionen</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">{user.email}</TableCell>
+                        <TableCell>{user.profile?.full_name || 'Nicht angegeben'}</TableCell>
+                        <TableCell>
+                          {new Date(user.created_at).toLocaleDateString('de-DE')}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={user.profile?.is_admin ? "default" : "secondary"}>
+                            {user.profile?.is_admin ? 'Administrator' : 'Benutzer'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => toggleUserAdminStatus(user.id, user.profile?.is_admin || false)}
+                            >
+                              {user.profile?.is_admin ? 'Admin entfernen' : 'Admin machen'}
+                            </Button>
+                            {user.id !== user.id && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Benutzer löschen</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Sind Sie sicher, dass Sie den Benutzer "{user.email}" löschen möchten? 
+                                      Diese Aktion kann nicht rückgängig gemacht werden.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteUser(user.id)}>
+                                      Löschen
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
