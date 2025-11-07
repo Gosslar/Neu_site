@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -27,6 +28,36 @@ const Navbar = () => {
   const { getTotalItems } = useCart();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles_2025_11_07_14_31')
+          .select('is_admin')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(data?.is_admin || false);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -122,9 +153,11 @@ const Navbar = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/profile">Profil</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin">Admin</Link>
-                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin">Admin</Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     Abmelden
