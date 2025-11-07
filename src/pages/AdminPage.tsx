@@ -501,6 +501,313 @@ const AdminPage = () => {
     }
   };
 
+  const deleteOrder = async (orderId: string) => {
+    try {
+      // First delete order items
+      const { error: itemsError } = await supabase
+        .from('order_items_2025_11_07_14_31')
+        .delete()
+        .eq('order_id', orderId);
+
+      if (itemsError) throw itemsError;
+
+      // Then delete the order
+      const { error: orderError } = await supabase
+        .from('orders_2025_11_07_14_31')
+        .delete()
+        .eq('id', orderId);
+
+      if (orderError) throw orderError;
+
+      toast({ title: "Bestellung gelöscht" });
+      fetchOrders();
+    } catch (error: any) {
+      console.error('Error deleting order:', error);
+      toast({
+        title: "Fehler beim Löschen",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const generateDeliveryNote = async (order: Order) => {
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'generate_delivery_note_2025_11_07_14_31',
+        {
+          body: { order }
+        }
+      );
+
+      if (error) {
+        throw new Error(error.message || 'Fehler beim Erstellen des Lieferscheins');
+      }
+
+      // Create and download the HTML file
+      const blob = new Blob([data.html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = data.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Lieferschein erstellt",
+        description: "Der Lieferschein wurde als HTML-Datei heruntergeladen. Öffnen Sie diese in Ihrem Browser und drucken Sie sie als PDF.",
+      });
+    } catch (error: any) {
+      console.error('Error generating delivery note:', error);
+      toast({
+        title: "Fehler beim Erstellen des Lieferscheins",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Fallback function for direct HTML generation
+  const generateDeliveryNoteLocal = (order: Order) => {
+    const customerInfo = order.customer_info && typeof order.customer_info === 'object' 
+      ? order.customer_info as any 
+      : {};
+    
+    const customerName = order.profiles?.full_name || customerInfo.fullName || 'Unbekannt';
+    const customerEmail = order.profiles?.email || customerInfo.email || 'Keine E-Mail';
+    const customerPhone = customerInfo.phone || 'Nicht angegeben';
+    const customerAddress = customerInfo.address || 'Nicht angegeben';
+    
+    const deliveryDate = new Date().toLocaleDateString('de-DE');
+    const orderDate = new Date(order.created_at).toLocaleDateString('de-DE');
+    
+    // Create PDF content
+    const pdfContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Lieferschein - Jagdrevier Weetzen</title>
+    <style>
+        @page {
+            margin: 20mm;
+            size: A4;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.4;
+            color: #2d3748;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #2d5016;
+        }
+        .logo-section {
+            flex: 1;
+        }
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2d5016;
+            margin-bottom: 5px;
+        }
+        .company-subtitle {
+            font-size: 14px;
+            color: #4a5568;
+        }
+        .document-info {
+            text-align: right;
+            flex: 1;
+        }
+        .document-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2d5016;
+            margin-bottom: 10px;
+        }
+        .document-number {
+            font-size: 14px;
+            color: #4a5568;
+        }
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .customer-info, .delivery-info {
+            flex: 1;
+            margin-right: 20px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2d5016;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .info-line {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .items-table th {
+            background-color: #2d5016;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        .items-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .items-table tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #4a5568;
+        }
+        .hunting-decoration {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+            color: #2d5016;
+        }
+        .payment-info {
+            background-color: #f0f4f0;
+            padding: 15px;
+            border-left: 4px solid #2d5016;
+            margin-bottom: 20px;
+        }
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+        .signature-box {
+            width: 200px;
+            text-align: center;
+        }
+        .signature-line {
+            border-top: 1px solid #4a5568;
+            margin-top: 40px;
+            padding-top: 5px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-section">
+            <div class="company-name">🦌 Jagdrevier Weetzen</div>
+            <div class="company-subtitle">Premium Wildfleisch & Jagdspezialitäten</div>
+        </div>
+        <div class="document-info">
+            <div class="document-title">LIEFERSCHEIN</div>
+            <div class="document-number">Nr. ${order.id.slice(0, 8).toUpperCase()}</div>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="customer-info">
+            <div class="section-title">🏠 Kunde</div>
+            <div class="info-line"><strong>Name:</strong> ${customerName}</div>
+            <div class="info-line"><strong>E-Mail:</strong> ${customerEmail}</div>
+            <div class="info-line"><strong>Telefon:</strong> ${customerPhone}</div>
+            <div class="info-line"><strong>Adresse:</strong> ${customerAddress}</div>
+        </div>
+        <div class="delivery-info">
+            <div class="section-title">📅 Lieferung</div>
+            <div class="info-line"><strong>Bestelldatum:</strong> ${orderDate}</div>
+            <div class="info-line"><strong>Lieferdatum:</strong> ${deliveryDate}</div>
+            <div class="info-line"><strong>Zahlungsart:</strong> ${order.payment_method === 'cash' ? 'Barzahlung bei Abholung' : 'Kreditkarte'}</div>
+            <div class="info-line"><strong>Status:</strong> ${order.status === 'confirmed' ? 'Bestätigt' : order.status === 'pending' ? 'Ausstehend' : order.status}</div>
+        </div>
+    </div>
+
+    <div class="payment-info">
+        <strong>💰 Zahlungshinweis:</strong> 
+        ${order.payment_method === 'cash' 
+          ? 'Barzahlung bei Abholung der Ware. Bitte halten Sie den entsprechenden Betrag bereit.' 
+          : 'Zahlung bereits erfolgt über Kreditkarte.'}
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>🥩 Artikel</th>
+                <th style="text-align: center;">📦 Menge</th>
+                <th>📝 Beschreibung</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${order.order_items.map(item => `
+                <tr>
+                    <td><strong>${item.product?.name || 'Unbekanntes Produkt'}</strong></td>
+                    <td style="text-align: center;">${item.quantity} Stück</td>
+                    <td>Premium Wildfleisch aus nachhaltiger Jagd</td>
+                </tr>
+            `).join('')}
+        </tbody>
+    </table>
+
+    <div class="hunting-decoration">
+        🌲 Aus den Wäldern von Weetzen - Nachhaltig gejagt, frisch geliefert 🌲
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <div class="signature-line">Übergeben von</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">Erhalten von</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div style="text-align: center;">
+            <strong>Jagdrevier Weetzen</strong> | Nachhaltige Jagd & Premium Wildfleisch<br>
+            E-Mail: info@jagd-weetzen.de | Frische Qualität aus der Region<br>
+            <em>"Tradition trifft Qualität - Seit Generationen im Einklang mit der Natur"</em>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    // Create and download PDF
+    const blob = new Blob([pdfContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Lieferschein_${order.id.slice(0, 8)}_${customerName.replace(/\s+/g, '_')}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Lieferschein erstellt",
+      description: "Der Lieferschein wurde als HTML-Datei heruntergeladen. Sie können diese in Ihrem Browser öffnen und als PDF drucken.",
+    });
+  };
+
   const deleteUser = async (userId: string) => {
     try {
       // First delete the profile
@@ -1179,7 +1486,16 @@ const AdminPage = () => {
                           </Select>
                         </TableCell>
                         <TableCell>
-                          <Dialog>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => generateDeliveryNote(order)}
+                              title="Lieferschein erstellen"
+                            >
+                              📄
+                            </Button>
+                            <Dialog>
                             <DialogTrigger asChild>
                               <Button variant="outline" size="sm">
                                 <Eye className="h-4 w-4" />
@@ -1231,6 +1547,29 @@ const AdminPage = () => {
                               </div>
                             </DialogContent>
                           </Dialog>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="sm" title="Bestellung löschen">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Bestellung löschen</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Sind Sie sicher, dass Sie die Bestellung #{order.id.slice(0, 8)} löschen möchten? 
+                                  Diese Aktion kann nicht rückgängig gemacht werden.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteOrder(order.id)}>
+                                  Löschen
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
