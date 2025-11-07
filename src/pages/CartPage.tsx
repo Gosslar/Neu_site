@@ -21,33 +21,7 @@ const CartPage = () => {
     }
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <CardTitle>Anmeldung erforderlich</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-muted-foreground">
-              Bitte melden Sie sich an, um Ihren Warenkorb zu sehen.
-            </p>
-            <div className="space-y-2">
-              <Link to="/auth">
-                <Button className="w-full">Anmelden</Button>
-              </Link>
-              <Link to="/shop">
-                <Button variant="outline" className="w-full">
-                  Weiter einkaufen
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Warenkorb ist jetzt für alle zugänglich (auch Gäste)
 
   if (loading) {
     return (
@@ -116,6 +90,16 @@ const CartPage = () => {
             <h1 className="text-3xl font-bold mb-6">
               Warenkorb ({getTotalItems()} {getTotalItems() === 1 ? 'Artikel' : 'Artikel'})
             </h1>
+            
+            {!user && items.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
+                <p className="text-sm text-blue-800">
+                  👤 <strong>Gastwarenkorb:</strong> Ihr Warenkorb wird lokal gespeichert. 
+                  <Link to="/auth" className="underline font-medium">Melden Sie sich an</Link>, 
+                  um Ihren Warenkorb dauerhaft zu speichern.
+                </p>
+              </div>
+            )}
 
             {items.map((item) => (
               <Card key={item.id}>

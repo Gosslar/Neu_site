@@ -42,9 +42,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
+  // Load cart from localStorage for guests
+  const loadGuestCart = () => {
+    try {
+      const savedCart = localStorage.getItem('guestCart');
+      if (savedCart) {
+        const parsedCart = JSON.parse(savedCart);
+        setItems(parsedCart);
+      }
+    } catch (error) {
+      console.error('Error loading guest cart:', error);
+    }
+  };
+
+  // Save cart to localStorage for guests
+  const saveGuestCart = (cartItems: CartItem[]) => {
+    try {
+      localStorage.setItem('guestCart', JSON.stringify(cartItems));
+    } catch (error) {
+      console.error('Error saving guest cart:', error);
+    }
+  };
+
   const fetchCartItems = async () => {
     if (!user) {
-      setItems([]);
+      // Load guest cart from localStorage
+      loadGuestCart();
       return;
     }
 
@@ -86,12 +109,53 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addToCart = async (productId: string, quantity: number = 1) => {
     if (!user) {
-      toast({
-        title: "Anmeldung erforderlich",
-        description: "Bitte melden Sie sich an, um Artikel zum Warenkorb hinzuzufügen.",
-        variant: "destructive",
-      });
-      return;
+      // Handle guest cart with localStorage
+      try {
+        // Get product details
+        const { data: product, error } = await supabase
+          .from('products_2025_11_07_14_31')
+          .select('id, name, price, image_url, stock_quantity')
+          .eq('id', productId)
+          .single();
+
+        if (error) throw error;
+
+        // Check if item already exists in guest cart
+        const existingItemIndex = items.findIndex(item => item.product_id === productId);
+        let newItems: CartItem[];
+
+        if (existingItemIndex >= 0) {
+          // Update existing item
+          newItems = [...items];
+          newItems[existingItemIndex].quantity += quantity;
+        } else {
+          // Add new item
+          const newItem: CartItem = {
+            id: `guest-${productId}-${Date.now()}`,
+            product_id: productId,
+            quantity: quantity,
+            product: product
+          };
+          newItems = [...items, newItem];
+        }
+
+        setItems(newItems);
+        saveGuestCart(newItems);
+        
+        toast({
+          title: "Artikel hinzugefügt",
+          description: `${product.name} wurde zum Warenkorb hinzugefügt.`,
+        });
+        return;
+      } catch (error: any) {
+        console.error('Error adding to guest cart:', error);
+        toast({
+          title: "Fehler",
+          description: "Artikel konnte nicht hinzugefügt werden.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     try {
@@ -123,7 +187,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateQuantity = async (productId: string, quantity: number) => {
-    if (!user) return;
+    if (!user) {
+      // Handle guest cart
+      if (quantity <= 0) {
+        await removeFromCart(productId);
+        return;
+      }
+
+      const newItems = items.map(item => 
+        item.product_id === productId 
+          ? { ...item, quantity }
+          : item
+      );
+      setItems(newItems);
+      saveGuestCart(newItems);
+      return;
+    }
 
     if (quantity <= 0) {
       await removeFromCart(productId);
@@ -150,7 +229,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const removeFromCart = async (productId: string) => {
-    if (!user) return;
+    if (!user) {
+      // Handle guest cart
+      const newItems = items.filter(item => item.product_id !== productId);
+      setItems(newItems);
+      saveGuestCart(newItems);
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -176,7 +261,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const clearCart = async () => {
-    if (!user) return;
+    if (!user) {
+      // Handle guest cart
+      setItems([]);
+      localStorage.removeItem('guestCart');
+      return;
+    }
 
     try {
       const { error } = await supabase
