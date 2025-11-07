@@ -33,19 +33,19 @@ const HomePage = () => {
     {
       title: 'Jagdhunde im Revier',
       description: 'Professionelle Ausbildung und Einsatz unserer Jagdhunde',
-      image: '/images/hunting_dogs_1.webp',
+      image: '/images/brandlbracke_hunting_dog_20251107_200713.png',
       link: '/jagdhunde',
     },
     {
       title: 'Rehkitzrettung',
       description: 'Moderne Drohnen-Technologie zum Schutz der Rehkitze',
-      image: '/images/hunting_dogs_2.jpeg',
+      image: '/images/fawn_rescue_drone_scene_20251107_202453.png',
       link: '/rehkitzrettung',
     },
     {
       title: 'Weetzer Stapelteiche',
-      description: 'Unsere Gewässer und nachhaltiger Fischbestand',
-      image: '/images/nature_wildlife_1.jpeg',
+      description: 'Naturschutzgebiet mit 275 Vogelarten und Wasserbüffeln',
+      image: '/images/stapelteiche_landscape_20251107_202516.png',
       link: '/stapelteiche',
     },
   ];
