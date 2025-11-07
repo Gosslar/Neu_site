@@ -27,10 +27,6 @@ const Footer = () => {
                 <span className="text-sm">Ole Gosslar - Linderte</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Phone className="h-4 w-4" />
-                <span className="text-sm">+49 (0) 123 456789</span>
-              </div>
-              <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4" />
                 <span className="text-sm">info@jagd-weetzen.de</span>
               </div>
