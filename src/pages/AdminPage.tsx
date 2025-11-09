@@ -247,6 +247,9 @@ const AdminPage = () => {
         const profile = profilesData?.find(p => p.id === order.user_id);
         const orderItems = itemsData?.filter(item => item.order_id === order.id) || [];
         
+        // Debug log to see customer_info
+        console.log('Order customer_info:', order.id.slice(0, 8), order.customer_info);
+        
         return {
           ...order,
           profiles_2025_11_07_14_31: profile || null,
@@ -617,8 +620,8 @@ const AdminPage = () => {
       }
 
       // Get customer details
-      const customerName = customerInfo.fullName || order.profiles_2025_11_07_14_31?.full_name || 'Unbekannt';
-      const customerEmail = customerInfo.email || order.profiles_2025_11_07_14_31?.email || 'Nicht angegeben';
+      const customerName = (customerInfo as any).fullName || order.profiles_2025_11_07_14_31?.full_name || 'Unbekannt';
+      const customerEmail = (customerInfo as any).email || order.profiles_2025_11_07_14_31?.email || 'Nicht angegeben';
       const customerPhone = customerInfo.phone || 'Nicht angegeben';
       const customerAddress = customerInfo.address || 'Nicht angegeben';
 
@@ -780,8 +783,8 @@ const AdminPage = () => {
       ? order.customer_info as any 
       : {};
     
-    const customerName = order.profiles_2025_11_07_14_31?.full_name || customerInfo.fullName || 'Unbekannt';
-    const customerEmail = order.profiles_2025_11_07_14_31?.email || customerInfo.email || 'Keine E-Mail';
+    const customerName = customerInfo.fullName || order.profiles_2025_11_07_14_31?.full_name || 'Unbekannt';
+    const customerEmail = customerInfo.email || order.profiles_2025_11_07_14_31?.email || 'Keine E-Mail';
     const customerPhone = customerInfo.phone || 'Nicht angegeben';
     const customerAddress = customerInfo.address || 'Nicht angegeben';
     
@@ -1762,16 +1765,18 @@ const AdminPage = () => {
                         <TableCell>
                           <div>
                             <div className="font-medium">
-                              {order.profiles_2025_11_07_14_31?.full_name || 
-                               (order.customer_info && typeof order.customer_info === 'object' 
+                              {(order.customer_info && typeof order.customer_info === 'object' 
                                  ? (order.customer_info as any).fullName 
-                                 : 'Unbekannt')}
+                                 : null) || 
+                               order.profiles_2025_11_07_14_31?.full_name || 
+                               'Unbekannt'}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {order.profiles_2025_11_07_14_31?.email || 
-                               (order.customer_info && typeof order.customer_info === 'object' 
+                              {(order.customer_info && typeof order.customer_info === 'object' 
                                  ? (order.customer_info as any).email 
-                                 : 'Keine E-Mail')}
+                                 : null) || 
+                               order.profiles_2025_11_07_14_31?.email || 
+                               'Keine E-Mail'}
                             </div>
                           </div>
                         </TableCell>
@@ -1838,16 +1843,18 @@ const AdminPage = () => {
                                 <div>
                                   <h4 className="font-semibold mb-2">Kunde</h4>
                                   <p>
-                                    {order.profiles_2025_11_07_14_31?.full_name || 
-                                     (order.customer_info && typeof order.customer_info === 'object' 
+                                    {(order.customer_info && typeof order.customer_info === 'object' 
                                        ? (order.customer_info as any).fullName 
-                                       : 'Unbekannt')}
+                                       : null) || 
+                                     order.profiles_2025_11_07_14_31?.full_name || 
+                                     'Unbekannt'}
                                   </p>
                                   <p className="text-sm text-muted-foreground">
-                                    {order.profiles_2025_11_07_14_31?.email || 
-                                     (order.customer_info && typeof order.customer_info === 'object' 
+                                    {(order.customer_info && typeof order.customer_info === 'object'
                                        ? (order.customer_info as any).email 
-                                       : 'Keine E-Mail')}
+                                       : null) || 
+                                     order.profiles_2025_11_07_14_31?.email || 
+                                     'Keine E-Mail'}
                                   </p>
                                   {order.customer_info && typeof order.customer_info === 'object' && (
                                     <div className="mt-2 text-sm">
@@ -1921,16 +1928,18 @@ const AdminPage = () => {
                   <div>
                     <h4 className="font-semibold mb-2">Kunde</h4>
                     <p>
-                      {editingOrder.profiles_2025_11_07_14_31?.full_name || 
-                       (editingOrder.customer_info && typeof editingOrder.customer_info === 'object' 
+                      {(editingOrder.customer_info && typeof editingOrder.customer_info === 'object' 
                          ? (editingOrder.customer_info as any).fullName 
-                         : 'Unbekannt')}
+                         : null) || 
+                       editingOrder.profiles_2025_11_07_14_31?.full_name || 
+                       'Unbekannt'}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {editingOrder.profiles_2025_11_07_14_31?.email || 
-                       (editingOrder.customer_info && typeof editingOrder.customer_info === 'object'
+                      {(editingOrder.customer_info && typeof editingOrder.customer_info === 'object'
                          ? (editingOrder.customer_info as any).email 
-                         : 'Keine E-Mail')}
+                         : null) || 
+                       editingOrder.profiles_2025_11_07_14_31?.email || 
+                       'Keine E-Mail'}
                     </p>
                   </div>
                   
