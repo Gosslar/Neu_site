@@ -214,7 +214,19 @@ export default defineConfig(({ mode }) => {
     build: {
       // Disable source maps in production for smaller bundle size
       sourcemap: false,
+      // Use relative paths for better compatibility with different hosting environments
+      assetsDir: 'assets',
+      rollupOptions: {
+        output: {
+          // Ensure consistent asset naming
+          assetFileNames: 'assets/[name]-[hash][extname]',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          entryFileNames: 'assets/[name]-[hash].js'
+        }
+      }
     },
+    // Use relative base path for better hosting compatibility
+    base: './',
     plugins: [
       react(),
       mode === 'development' &&
