@@ -547,6 +547,27 @@ const AdminPage = () => {
     }
   };
 
+  const updatePaymentStatus = async (orderId: string, newPaymentStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders_2025_11_07_14_31')
+        .update({ payment_status: newPaymentStatus })
+        .eq('id', orderId);
+
+      if (error) throw error;
+      
+      toast({ title: "Zahlungsstatus aktualisiert" });
+      fetchOrders();
+    } catch (error: any) {
+      console.error('Error updating payment status:', error);
+      toast({
+        title: "Fehler beim Aktualisieren des Zahlungsstatus",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const toggleUserAdminStatus = async (userId: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
@@ -1833,13 +1854,24 @@ const AdminPage = () => {
                         </TableCell>
                         <TableCell>€{order.total_amount.toFixed(2)}</TableCell>
                         <TableCell>
-                          <div className="space-y-1">
+                          <div className="space-y-2">
                             <Badge variant={order.payment_method === 'cash' ? 'secondary' : 'default'}>
                               {order.payment_method === 'cash' ? 'Barzahlung' : 'Kreditkarte'}
                             </Badge>
-                            <Badge variant={order.payment_status === 'completed' ? 'default' : 'destructive'} className="text-xs">
-                              {order.payment_status === 'completed' ? 'Bezahlt' : 'Ausstehend'}
-                            </Badge>
+                            <Select
+                              value={order.payment_status}
+                              onValueChange={(value) => updatePaymentStatus(order.id, value)}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Ausstehend</SelectItem>
+                                <SelectItem value="completed">Bezahlt</SelectItem>
+                                <SelectItem value="failed">Fehlgeschlagen</SelectItem>
+                                <SelectItem value="refunded">Erstattet</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         </TableCell>
                         <TableCell>
