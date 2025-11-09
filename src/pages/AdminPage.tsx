@@ -248,7 +248,13 @@ const AdminPage = () => {
         const orderItems = itemsData?.filter(item => item.order_id === order.id) || [];
         
         // Debug log to see customer_info
-        console.log('Order customer_info:', order.id.slice(0, 8), order.customer_info);
+        console.log('Order debug:', {
+          id: order.id.slice(0, 8),
+          user_id: order.user_id,
+          customer_info: order.customer_info,
+          customer_info_type: typeof order.customer_info,
+          profile: profile
+        });
         
         return {
           ...order,
@@ -1151,6 +1157,56 @@ const AdminPage = () => {
     }
   };
 
+  // Helper function to get customer name from order
+  const getCustomerName = (order: Order) => {
+    // Try customer_info first
+    if (order.customer_info) {
+      try {
+        const customerInfo = typeof order.customer_info === 'string' 
+          ? JSON.parse(order.customer_info) 
+          : order.customer_info;
+        
+        if (customerInfo && customerInfo.fullName) {
+          return customerInfo.fullName;
+        }
+      } catch (e) {
+        console.error('Error parsing customer_info:', e);
+      }
+    }
+    
+    // Fallback to profile
+    if (order.profiles_2025_11_07_14_31?.full_name) {
+      return order.profiles_2025_11_07_14_31.full_name;
+    }
+    
+    return 'Unbekannt';
+  };
+
+  // Helper function to get customer email from order
+  const getCustomerEmail = (order: Order) => {
+    // Try customer_info first
+    if (order.customer_info) {
+      try {
+        const customerInfo = typeof order.customer_info === 'string' 
+          ? JSON.parse(order.customer_info) 
+          : order.customer_info;
+        
+        if (customerInfo && customerInfo.email) {
+          return customerInfo.email;
+        }
+      } catch (e) {
+        console.error('Error parsing customer_info:', e);
+      }
+    }
+    
+    // Fallback to profile
+    if (order.profiles_2025_11_07_14_31?.email) {
+      return order.profiles_2025_11_07_14_31.email;
+    }
+    
+    return 'Keine E-Mail';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -1765,18 +1821,10 @@ const AdminPage = () => {
                         <TableCell>
                           <div>
                             <div className="font-medium">
-                              {(order.customer_info && typeof order.customer_info === 'object' 
-                                 ? (order.customer_info as any).fullName 
-                                 : null) || 
-                               order.profiles_2025_11_07_14_31?.full_name || 
-                               'Unbekannt'}
+                              {getCustomerName(order)}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {(order.customer_info && typeof order.customer_info === 'object' 
-                                 ? (order.customer_info as any).email 
-                                 : null) || 
-                               order.profiles_2025_11_07_14_31?.email || 
-                               'Keine E-Mail'}
+                              {getCustomerEmail(order)}
                             </div>
                           </div>
                         </TableCell>
