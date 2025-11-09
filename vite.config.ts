@@ -211,6 +211,10 @@ export default defineConfig(({ mode }) => {
       host: "::",
       port: 8080,
     },
+    build: {
+      // Disable source maps in production for smaller bundle size
+      sourcemap: false,
+    },
     plugins: [
       react(),
       mode === 'development' &&
