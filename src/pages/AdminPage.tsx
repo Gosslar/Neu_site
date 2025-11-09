@@ -47,7 +47,7 @@ interface Order {
   payment_status: string;
   created_at: string;
   customer_info?: any;
-  profiles?: {
+  profiles_2025_11_07_14_31?: {
     full_name: string;
     email: string;
   } | null;
@@ -210,20 +210,51 @@ const AdminPage = () => {
       console.log('Basic orders fetched:', basicOrders?.length || 0);
 
       // If basic fetch works, try with joins
-      const { data, error } = await supabase
+      // Try a simpler approach first
+      const { data: ordersData, error: ordersError } = await supabase
         .from('orders_2025_11_07_14_31')
-        .select(`
-          *,
-          profiles:user_id(full_name, email),
-          order_items:order_items_2025_11_07_14_31(
-            id,
-            quantity,
-            price,
-            product_id,
-            product:products_2025_11_07_14_31(id, name)
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
+
+      if (ordersError) {
+        console.error('Orders fetch error:', ordersError);
+        throw ordersError;
+      }
+
+      // Fetch profiles separately
+      const userIds = ordersData?.map(order => order.user_id).filter(Boolean) || [];
+      const { data: profilesData } = await supabase
+        .from('profiles_2025_11_07_14_31')
+        .select('id, full_name, email')
+        .in('id', userIds);
+
+      // Fetch order items separately
+      const orderIds = ordersData?.map(order => order.id) || [];
+      const { data: itemsData } = await supabase
+        .from('order_items_2025_11_07_14_31')
+        .select(`
+          id,
+          order_id,
+          quantity,
+          price,
+          product_id,
+          product:products_2025_11_07_14_31(id, name)
+        `)
+        .in('order_id', orderIds);
+
+      // Combine the data
+      const data = ordersData?.map(order => {
+        const profile = profilesData?.find(p => p.id === order.user_id);
+        const orderItems = itemsData?.filter(item => item.order_id === order.id) || [];
+        
+        return {
+          ...order,
+          profiles_2025_11_07_14_31: profile || null,
+          order_items: orderItems
+        };
+      }) || [];
+
+      const error = null;
 
       if (error) {
         console.error('Full orders fetch error:', error);
@@ -586,10 +617,10 @@ const AdminPage = () => {
       }
 
       // Get customer details
-      const customerName = customerInfo.fullName || order.profiles?.full_name || 'Unbekannt';
-      const customerEmail = customerInfo.email || order.profiles?.email || 'Nicht angegeben';
-      const customerPhone = customerInfo.phone || order.profiles?.phone || 'Nicht angegeben';
-      const customerAddress = customerInfo.address || order.profiles?.address || 'Nicht angegeben';
+      const customerName = customerInfo.fullName || order.profiles_2025_11_07_14_31?.full_name || 'Unbekannt';
+      const customerEmail = customerInfo.email || order.profiles_2025_11_07_14_31?.email || 'Nicht angegeben';
+      const customerPhone = customerInfo.phone || 'Nicht angegeben';
+      const customerAddress = customerInfo.address || 'Nicht angegeben';
 
       // Format dates
       const orderDate = new Date(order.created_at).toLocaleDateString('de-DE');
@@ -749,8 +780,8 @@ const AdminPage = () => {
       ? order.customer_info as any 
       : {};
     
-    const customerName = order.profiles?.full_name || customerInfo.fullName || 'Unbekannt';
-    const customerEmail = order.profiles?.email || customerInfo.email || 'Keine E-Mail';
+    const customerName = order.profiles_2025_11_07_14_31?.full_name || customerInfo.fullName || 'Unbekannt';
+    const customerEmail = order.profiles_2025_11_07_14_31?.email || customerInfo.email || 'Keine E-Mail';
     const customerPhone = customerInfo.phone || 'Nicht angegeben';
     const customerAddress = customerInfo.address || 'Nicht angegeben';
     
@@ -1731,13 +1762,13 @@ const AdminPage = () => {
                         <TableCell>
                           <div>
                             <div className="font-medium">
-                              {order.profiles?.full_name || 
+                              {order.profiles_2025_11_07_14_31?.full_name || 
                                (order.customer_info && typeof order.customer_info === 'object' 
                                  ? (order.customer_info as any).fullName 
                                  : 'Unbekannt')}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {order.profiles?.email || 
+                              {order.profiles_2025_11_07_14_31?.email || 
                                (order.customer_info && typeof order.customer_info === 'object' 
                                  ? (order.customer_info as any).email 
                                  : 'Keine E-Mail')}
@@ -1807,13 +1838,13 @@ const AdminPage = () => {
                                 <div>
                                   <h4 className="font-semibold mb-2">Kunde</h4>
                                   <p>
-                                    {order.profiles?.full_name || 
+                                    {order.profiles_2025_11_07_14_31?.full_name || 
                                      (order.customer_info && typeof order.customer_info === 'object' 
                                        ? (order.customer_info as any).fullName 
                                        : 'Unbekannt')}
                                   </p>
                                   <p className="text-sm text-muted-foreground">
-                                    {order.profiles?.email || 
+                                    {order.profiles_2025_11_07_14_31?.email || 
                                      (order.customer_info && typeof order.customer_info === 'object' 
                                        ? (order.customer_info as any).email 
                                        : 'Keine E-Mail')}
@@ -1890,14 +1921,14 @@ const AdminPage = () => {
                   <div>
                     <h4 className="font-semibold mb-2">Kunde</h4>
                     <p>
-                      {editingOrder.profiles?.full_name || 
+                      {editingOrder.profiles_2025_11_07_14_31?.full_name || 
                        (editingOrder.customer_info && typeof editingOrder.customer_info === 'object' 
                          ? (editingOrder.customer_info as any).fullName 
                          : 'Unbekannt')}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {editingOrder.profiles?.email || 
-                       (editingOrder.customer_info && typeof editingOrder.customer_info === 'object' 
+                      {editingOrder.profiles_2025_11_07_14_31?.email || 
+                       (editingOrder.customer_info && typeof editingOrder.customer_info === 'object'
                          ? (editingOrder.customer_info as any).email 
                          : 'Keine E-Mail')}
                     </p>
