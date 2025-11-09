@@ -52,9 +52,12 @@ interface Order {
     email: string;
   } | null;
   order_items: {
+    id: string;
     quantity: number;
     price: number;
+    product_id: string;
     product: {
+      id: string;
       name: string;
     };
   }[];
@@ -80,6 +83,8 @@ const AdminPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
 
   // Product form state
   const [productForm, setProductForm] = useState({
@@ -157,6 +162,7 @@ const AdminPage = () => {
 
       if (error) throw error;
       setProducts(data || []);
+      setAvailableProducts(data || []);
     } catch (error: any) {
       console.error('Error fetching products:', error);
       toast({
@@ -208,11 +214,13 @@ const AdminPage = () => {
         .from('orders_2025_11_07_14_31')
         .select(`
           *,
-          profiles:profiles_2025_11_07_14_31(full_name, email),
+          profiles:user_id(full_name, email),
           order_items:order_items_2025_11_07_14_31(
+            id,
             quantity,
             price,
-            product:products_2025_11_07_14_31(name)
+            product_id,
+            product:products_2025_11_07_14_31(id, name)
           )
         `)
         .order('created_at', { ascending: false });
@@ -996,6 +1004,119 @@ const AdminPage = () => {
     }
   };
 
+  // Order editing functions
+  const startEditingOrder = (order: Order) => {
+    setEditingOrder(order);
+  };
+
+  const addItemToOrder = async (orderId: string, productId: string, quantity: number) => {
+    try {
+      const product = availableProducts.find(p => p.id === productId);
+      if (!product) {
+        toast({
+          title: "Fehler",
+          description: "Produkt nicht gefunden",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('order_items_2025_11_07_14_31')
+        .insert({
+          order_id: orderId,
+          product_id: productId,
+          quantity: quantity,
+          price: product.price
+        });
+
+      if (error) throw error;
+
+      // Update order total
+      await updateOrderTotal(orderId);
+      
+      toast({ title: "Artikel hinzugefügt" });
+      fetchOrders();
+    } catch (error: any) {
+      console.error('Error adding item to order:', error);
+      toast({
+        title: "Fehler beim Hinzufügen",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removeItemFromOrder = async (orderItemId: string, orderId: string) => {
+    try {
+      const { error } = await supabase
+        .from('order_items_2025_11_07_14_31')
+        .delete()
+        .eq('id', orderItemId);
+
+      if (error) throw error;
+
+      // Update order total
+      await updateOrderTotal(orderId);
+      
+      toast({ title: "Artikel entfernt" });
+      fetchOrders();
+    } catch (error: any) {
+      console.error('Error removing item from order:', error);
+      toast({
+        title: "Fehler beim Entfernen",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateOrderItemQuantity = async (orderItemId: string, orderId: string, newQuantity: number) => {
+    try {
+      const { error } = await supabase
+        .from('order_items_2025_11_07_14_31')
+        .update({ quantity: newQuantity })
+        .eq('id', orderItemId);
+
+      if (error) throw error;
+
+      // Update order total
+      await updateOrderTotal(orderId);
+      
+      toast({ title: "Menge aktualisiert" });
+      fetchOrders();
+    } catch (error: any) {
+      console.error('Error updating item quantity:', error);
+      toast({
+        title: "Fehler beim Aktualisieren",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateOrderTotal = async (orderId: string) => {
+    try {
+      const { data: items, error } = await supabase
+        .from('order_items_2025_11_07_14_31')
+        .select('quantity, price')
+        .eq('order_id', orderId);
+
+      if (error) throw error;
+
+      const total = items?.reduce((sum, item) => sum + (item.quantity * item.price), 0) || 0;
+
+      const { error: updateError } = await supabase
+        .from('orders_2025_11_07_14_31')
+        .update({ total_amount: total })
+        .eq('id', orderId);
+
+      if (updateError) throw updateError;
+    } catch (error: any) {
+      console.error('Error updating order total:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -1659,6 +1780,14 @@ const AdminPage = () => {
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => startEditingOrder(order)}
+                              title="Bestellung bearbeiten"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => generateDeliveryNote(order)}
                               title="Lieferschein erstellen"
                             >
@@ -1748,6 +1877,126 @@ const AdminPage = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Order Edit Dialog */}
+          {editingOrder && (
+            <Dialog open={!!editingOrder} onOpenChange={() => setEditingOrder(null)}>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Bestellung bearbeiten #{editingOrder.id.slice(0, 8)}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6">
+                  {/* Customer Info */}
+                  <div>
+                    <h4 className="font-semibold mb-2">Kunde</h4>
+                    <p>
+                      {editingOrder.profiles?.full_name || 
+                       (editingOrder.customer_info && typeof editingOrder.customer_info === 'object' 
+                         ? (editingOrder.customer_info as any).fullName 
+                         : 'Unbekannt')}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {editingOrder.profiles?.email || 
+                       (editingOrder.customer_info && typeof editingOrder.customer_info === 'object' 
+                         ? (editingOrder.customer_info as any).email 
+                         : 'Keine E-Mail')}
+                    </p>
+                  </div>
+                  
+                  <Separator />
+                  
+                  {/* Order Items */}
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-semibold">Bestellte Artikel</h4>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button size="sm">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Artikel hinzufügen
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Artikel zur Bestellung hinzufügen</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div>
+                              <Label>Produkt wählen</Label>
+                              <Select onValueChange={(productId) => {
+                                const quantity = 1;
+                                addItemToOrder(editingOrder.id, productId, quantity);
+                              }}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Produkt auswählen" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {availableProducts.map((product) => (
+                                    <SelectItem key={product.id} value={product.id}>
+                                      {product.name} - €{product.price.toFixed(2)}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {editingOrder.order_items.map((item, index) => (
+                        <div key={item.id || index} className="flex items-center justify-between p-3 border rounded">
+                          <div className="flex-1">
+                            <span className="font-medium">{item.product?.name || 'Unbekanntes Produkt'}</span>
+                            <span className="text-sm text-muted-foreground ml-2">
+                              €{item.price.toFixed(2)} pro Stück
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) => {
+                                const newQuantity = parseInt(e.target.value);
+                                if (newQuantity > 0 && item.id) {
+                                  updateOrderItemQuantity(item.id, editingOrder.id, newQuantity);
+                                }
+                              }}
+                              className="w-20"
+                            />
+                            <span className="font-medium w-20 text-right">
+                              €{(item.price * item.quantity).toFixed(2)}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (item.id) {
+                                  removeItemFromOrder(item.id, editingOrder.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  {/* Order Total */}
+                  <div className="flex justify-between font-semibold text-lg">
+                    <span>Gesamt:</span>
+                    <span>€{editingOrder.total_amount.toFixed(2)}</span>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
 
           {/* Users Tab */}
           <TabsContent value="users">
