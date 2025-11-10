@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TreePine, ShoppingBag, Users, Award, Leaf, Target } from 'lucide-react';
+import { useCMS } from '@/hooks/useCMS';
 
 const HomePage = () => {
+  const { getContentValue, getSettingValue, loading } = useCMS();
   const features = [
     {
       icon: <ShoppingBag className="h-8 w-8" />,
@@ -68,11 +70,10 @@ const HomePage = () => {
               <TreePine className="h-16 w-16" />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Jagdrevier Weetzen
+              {loading ? 'Jagdrevier Weetzen' : getContentValue('homepage_hero_title', 'Jagdrevier Weetzen')}
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-primary-foreground/90 max-w-3xl mx-auto">
-              Erleben Sie nachhaltige Jagd in 340 Hektar naturbelassener Wiesen- und Feldlandschaft. 
-              Tradition, Respekt vor der Natur und verantwortungsvolle Hege stehen im Mittelpunkt unserer jagdlichen Aktivitäten.
+              {loading ? 'Erleben Sie nachhaltige Jagd in 340 Hektar naturbelassener Wiesen- und Feldlandschaft. Tradition, Respekt vor der Natur und verantwortungsvolle Hege stehen im Mittelpunkt unserer jagdlichen Aktivitäten.' : getContentValue('homepage_hero_subtitle', 'Erleben Sie nachhaltige Jagd in 340 Hektar naturbelassener Wiesen- und Feldlandschaft. Tradition, Respekt vor der Natur und verantwortungsvolle Hege stehen im Mittelpunkt unserer jagdlichen Aktivitäten.')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/shop">

@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, Edit, Trash2, Package, ShoppingCart, Users, TrendingUp, Eye, FileText } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
-
+import CMSManager from '@/components/CMSManager';
 interface Product {
   id: string;
   name: string;
@@ -1350,11 +1350,12 @@ const AdminPage = () => {
         </div>
 
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="products">Produkte</TabsTrigger>
             <TabsTrigger value="categories">Kategorien</TabsTrigger>
             <TabsTrigger value="orders">Bestellungen</TabsTrigger>
             <TabsTrigger value="users">Benutzer</TabsTrigger>
+            <TabsTrigger value="cms">CMS</TabsTrigger>
           </TabsList>
 
           {/* Products Tab */}
@@ -2189,6 +2190,11 @@ const AdminPage = () => {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* CMS Tab */}
+          <TabsContent value="cms">
+            <CMSManager />
           </TabsContent>
         </Tabs>
       </div>
