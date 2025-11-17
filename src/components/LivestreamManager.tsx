@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
-import { Play, Settings, Save, Eye, EyeOff, Youtube, Radio, Clock, Users } from 'lucide-react';
+import { Settings, Save, Eye, EyeOff, Youtube, Radio, Clock, FileText } from 'lucide-react';
 
 interface LivestreamSettings {
   livestream_enabled: boolean;
@@ -36,6 +36,7 @@ const LivestreamManager = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLivestreamSettings();
@@ -44,27 +45,41 @@ const LivestreamManager = () => {
   const fetchLivestreamSettings = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
+      console.log('Fetching livestream settings...');
       
       const { data, error } = await supabase
         .from('cms_settings_2025_11_10_08_53')
         .select('setting_key, setting_value')
         .eq('category', 'livestream');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
-      // Convert array to object
-      const settingsObj: any = {};
-      data?.forEach(item => {
-        if (item.setting_key === 'livestream_enabled') {
-          settingsObj[item.setting_key] = item.setting_value === 'true';
-        } else {
-          settingsObj[item.setting_key] = item.setting_value;
-        }
-      });
+      console.log('Fetched data:', data);
 
-      setSettings(prev => ({ ...prev, ...settingsObj }));
+      if (data && data.length > 0) {
+        // Convert array to object
+        const settingsObj: any = {};
+        data.forEach(item => {
+          if (item.setting_key === 'livestream_enabled') {
+            settingsObj[item.setting_key] = item.setting_value === 'true';
+          } else {
+            settingsObj[item.setting_key] = item.setting_value || '';
+          }
+        });
+
+        console.log('Processed settings:', settingsObj);
+        setSettings(prev => ({ ...prev, ...settingsObj }));
+      } else {
+        console.log('No livestream settings found, using defaults');
+      }
     } catch (error: any) {
       console.error('Error fetching livestream settings:', error);
+      setError(`Fehler beim Laden: ${error.message}`);
       toast({
         title: "Fehler beim Laden der Livestream-Einstellungen",
         description: error.message,
@@ -78,6 +93,9 @@ const LivestreamManager = () => {
   const saveLivestreamSettings = async () => {
     try {
       setSaving(true);
+      setError(null);
+
+      console.log('Saving settings:', settings);
 
       // Update each setting individually
       const updates = Object.entries(settings).map(([key, value]) => ({
@@ -86,17 +104,24 @@ const LivestreamManager = () => {
       }));
 
       for (const update of updates) {
+        console.log('Updating:', update);
+        
         const { error } = await supabase
           .from('cms_settings_2025_11_10_08_53')
           .update({ setting_value: update.setting_value })
           .eq('setting_key', update.setting_key);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update error for', update.setting_key, ':', error);
+          throw error;
+        }
       }
 
+      console.log('All settings saved successfully');
       toast({ title: "Livestream-Einstellungen gespeichert" });
     } catch (error: any) {
       console.error('Error saving livestream settings:', error);
+      setError(`Fehler beim Speichern: ${error.message}`);
       toast({
         title: "Fehler beim Speichern",
         description: error.message,
@@ -108,6 +133,8 @@ const LivestreamManager = () => {
   };
 
   const extractYouTubeId = (url: string): string => {
+    if (!url) return '';
+    
     // Extract YouTube video ID from various URL formats
     const patterns = [
       /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
@@ -127,14 +154,49 @@ const LivestreamManager = () => {
   };
 
   const isValidYouTubeId = (id: string): boolean => {
+    if (!id) return false;
     const cleanId = extractYouTubeId(id);
     return /^[a-zA-Z0-9_-]{11}$/.test(cleanId);
   };
 
+  // Error boundary - show error if something went wrong
+  if (error && !loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Livestream-Verwaltung</h2>
+          <Badge variant="destructive">Fehler</Badge>
+        </div>
+        
+        <Alert variant="destructive">
+          <AlertDescription>
+            {error}
+          </AlertDescription>
+        </Alert>
+        
+        <Button onClick={fetchLivestreamSettings}>
+          Erneut versuchen
+        </Button>
+      </div>
+    );
+  }
+
+  // Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-lg">Livestream-Einstellungen werden geladen...</div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Livestream-Verwaltung</h2>
+          <Badge variant="secondary">Lädt...</Badge>
+        </div>
+        
+        <Card>
+          <CardContent className="p-8">
+            <div className="flex items-center justify-center">
+              <div className="text-lg">Livestream-Einstellungen werden geladen...</div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -199,6 +261,7 @@ const LivestreamManager = () => {
                       <div className="text-center">
                         <Youtube className="h-12 w-12 mx-auto mb-2 opacity-50" />
                         <p>Ungültige YouTube-Video-ID</p>
+                        <p className="text-sm opacity-75">ID: {settings.youtube_stream_id}</p>
                       </div>
                     </div>
                   )}
@@ -393,6 +456,21 @@ const LivestreamManager = () => {
               <li>Offline-Nachricht anpassen für professionelle Darstellung</li>
               <li>Regelmäßig testen ob der Stream korrekt angezeigt wird</li>
             </ul>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Debug Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Debug-Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-xs text-muted-foreground space-y-1">
+            <p>Livestream aktiviert: {settings.livestream_enabled ? 'Ja' : 'Nein'}</p>
+            <p>YouTube-ID: {settings.youtube_stream_id || 'Nicht gesetzt'}</p>
+            <p>ID gültig: {isValidYouTubeId(settings.youtube_stream_id) ? 'Ja' : 'Nein'}</p>
+            <p>Letztes Update: {new Date().toLocaleString()}</p>
           </div>
         </CardContent>
       </Card>
