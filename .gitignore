@@ -43,6 +43,12 @@ coverage/
 
 # --- Build outputs / caches ---
 dist/
+# Exception: Keep important deployment files
+!dist/.htaccess
+!dist/index.php
+!dist/index.html
+!dist/robots.txt
+!dist/favicon.ico
 build/
 electron-dist/
 dist-electron/
