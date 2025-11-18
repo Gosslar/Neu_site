@@ -16,6 +16,8 @@ interface LivestreamSettings {
   livestream_enabled: boolean;
   youtube_stream_id: string;
   youtube_channel_id: string;
+  youtube_stream_url: string;
+  youtube_stream_key: string;
   livestream_title: string;
   livestream_description: string;
   livestream_schedule: string;
@@ -27,6 +29,8 @@ const LivestreamManager = () => {
     livestream_enabled: false,
     youtube_stream_id: '',
     youtube_channel_id: '',
+    youtube_stream_url: '',
+    youtube_stream_key: '',
     livestream_title: 'Live aus dem Jagdrevier Weetzen',
     livestream_description: 'Erleben Sie live die Aktivitäten in unserem Jagdrevier',
     livestream_schedule: '',
@@ -315,23 +319,56 @@ const LivestreamManager = () => {
               <Separator />
 
               <div className="space-y-2">
-                <Label htmlFor="youtube_stream_id">YouTube Video/Stream ID</Label>
+                <Label htmlFor="youtube_stream_id">YouTube Video/Stream ID (Optional)</Label>
                 <Input
                   id="youtube_stream_id"
                   value={settings.youtube_stream_id}
                   onChange={(e) => 
                     setSettings(prev => ({ ...prev, youtube_stream_id: e.target.value }))
                   }
-                  placeholder="z.B. dQw4w9WgXcQ oder komplette YouTube URL"
+                  placeholder="z.B. dQw4w9WgXcQ (nur für vorhandene Videos)"
                 />
                 <p className="text-xs text-muted-foreground">
-                  YouTube Video-ID oder komplette URL eingeben. Für Livestreams die Stream-ID verwenden.
+                  Optional: YouTube Video-ID für bereits aufgezeichnete Videos. Für Live-Streaming verwenden Sie die Felder unten.
                 </p>
                 {settings.youtube_stream_id && !isValidYouTubeId(settings.youtube_stream_id) && (
                   <p className="text-xs text-red-500">
                     ⚠️ Ungültige YouTube-ID Format
                   </p>
                 )}
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label htmlFor="youtube_stream_url">YouTube Live-Stream URL</Label>
+                <Input
+                  id="youtube_stream_url"
+                  value={settings.youtube_stream_url}
+                  onChange={(e) => 
+                    setSettings(prev => ({ ...prev, youtube_stream_url: e.target.value }))
+                  }
+                  placeholder="rtmp://a.rtmp.youtube.com/live2"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Stream-URL aus YouTube Studio → Live streamen → Stream-Einstellungen
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="youtube_stream_key">YouTube Stream-Schlüssel</Label>
+                <Input
+                  id="youtube_stream_key"
+                  type="password"
+                  value={settings.youtube_stream_key}
+                  onChange={(e) => 
+                    setSettings(prev => ({ ...prev, youtube_stream_key: e.target.value }))
+                  }
+                  placeholder="Ihr geheimer Stream-Schlüssel"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Geheimer Stream-Schlüssel aus YouTube Studio. Niemals öffentlich teilen!
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -436,25 +473,37 @@ const LivestreamManager = () => {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="text-sm space-y-2">
-            <p><strong>1. YouTube-Video/Stream-ID finden:</strong></p>
+            <p><strong>1. YouTube Live-Streaming einrichten:</strong></p>
             <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
-              <li>Bei YouTube-URL <code>https://youtube.com/watch?v=dQw4w9WgXcQ</code> ist die ID: <code>dQw4w9WgXcQ</code></li>
-              <li>Bei Kurz-URL <code>https://youtu.be/dQw4w9WgXcQ</code> ist die ID: <code>dQw4w9WgXcQ</code></li>
-              <li>Für Livestreams: Die Stream-ID aus YouTube Studio verwenden</li>
+              <li>YouTube Studio öffnen → "Erstellen" → "Live streamen"</li>
+              <li>Stream-Einstellungen konfigurieren (Titel, Beschreibung, Sichtbarkeit)</li>
+              <li>"Stream-Schlüssel" Tab wählen</li>
+              <li>Stream-URL kopieren (z.B. rtmp://a.rtmp.youtube.com/live2)</li>
+              <li>Stream-Schlüssel kopieren (geheimer Code)</li>
             </ul>
             
-            <p><strong>2. Livestream starten:</strong></p>
+            <p><strong>2. Streaming-Software konfigurieren:</strong></p>
             <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
-              <li>YouTube Studio → "Live streamen" → Stream-Schlüssel kopieren</li>
-              <li>Stream-ID hier eingeben und "Livestream aktivieren"</li>
-              <li>Vorschau-Modus verwenden um das Ergebnis zu testen</li>
+              <li>OBS Studio, XSplit oder andere Streaming-Software verwenden</li>
+              <li>Stream-URL und Stream-Schlüssel in der Software eingeben</li>
+              <li>Kamera/Mikrofon konfigurieren und Stream starten</li>
+              <li>YouTube zeigt "Live" Status an, wenn Stream aktiv ist</li>
             </ul>
 
-            <p><strong>3. Tipps:</strong></p>
+            <p><strong>3. Website-Integration:</strong></p>
             <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
-              <li>Stream-Zeiten angeben für bessere Benutzerinformation</li>
-              <li>Offline-Nachricht anpassen für professionelle Darstellung</li>
-              <li>Regelmäßig testen ob der Stream korrekt angezeigt wird</li>
+              <li>Stream-URL und Stream-Schlüssel hier eingeben</li>
+              <li>"Livestream aktivieren" einschalten</li>
+              <li>Titel und Beschreibung anpassen</li>
+              <li>Vorschau-Modus testen (zeigt Live-Status)</li>
+              <li>Besucher können unter /livestream zuschauen</li>
+            </ul>
+
+            <p><strong>4. Alternative: Vorhandene Videos:</strong></p>
+            <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
+              <li>Für bereits hochgeladene Videos: YouTube Video-ID verwenden</li>
+              <li>Bei URL https://youtube.com/watch?v=dQw4w9WgXcQ ist die ID: dQw4w9WgXcQ</li>
+              <li>Video-ID in das entsprechende Feld eingeben</li>
             </ul>
           </div>
         </CardContent>
@@ -469,6 +518,8 @@ const LivestreamManager = () => {
           <div className="text-xs text-muted-foreground space-y-1">
             <p>Livestream aktiviert: {settings.livestream_enabled ? 'Ja' : 'Nein'}</p>
             <p>YouTube-ID: {settings.youtube_stream_id || 'Nicht gesetzt'}</p>
+            <p>Stream-URL: {settings.youtube_stream_url || 'Nicht gesetzt'}</p>
+            <p>Stream-Key: {settings.youtube_stream_key ? '***gesetzt***' : 'Nicht gesetzt'}</p>
             <p>ID gültig: {isValidYouTubeId(settings.youtube_stream_id) ? 'Ja' : 'Nein'}</p>
             <p>Letztes Update: {new Date().toLocaleString()}</p>
           </div>
