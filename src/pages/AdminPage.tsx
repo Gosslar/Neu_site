@@ -531,14 +531,99 @@ const AdminPage = () => {
 
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
+      // Get current order status to check if we're changing from/to cancelled
+      const { data: currentOrder, error: fetchError } = await supabase
+        .from('orders_2025_11_07_14_31')
+        .select('status')
+        .eq('id', orderId)
+        .single();
+
+      if (fetchError) throw fetchError;
+      
+      const oldStatus = currentOrder?.status;
+      const isBeingCancelled = status === 'cancelled' && oldStatus !== 'cancelled';
+      const isBeingUncancelled = oldStatus === 'cancelled' && status !== 'cancelled';
+
+      console.log(`Order status change: ${oldStatus} -> ${status}, Being cancelled: ${isBeingCancelled}, Being uncancelled: ${isBeingUncancelled}`);
+
+      // If order is being cancelled, restore stock
+      if (isBeingCancelled) {
+        const { data: orderItems, error: itemsError } = await supabase
+          .from('order_items_2025_11_07_14_31')
+          .select('quantity, product_id, products_2025_11_07_14_31(stock_quantity)')
+          .eq('order_id', orderId);
+
+        if (itemsError) throw itemsError;
+
+        // Restore stock for each item
+        for (const item of orderItems || []) {
+          const currentStock = item.products_2025_11_07_14_31?.stock_quantity || 0;
+          const newStock = currentStock + item.quantity;
+          
+          const { error: stockError } = await supabase
+            .from('products_2025_11_07_14_31')
+            .update({ stock_quantity: newStock })
+            .eq('id', item.product_id);
+
+          if (stockError) throw stockError;
+          
+          console.log(`Stock restored for cancelled order: Product ${item.product_id}, Quantity: ${item.quantity}, New stock: ${newStock}`);
+        }
+      }
+
+      // If order is being uncancelled, check stock and reserve items
+      if (isBeingUncancelled) {
+        const { data: orderItems, error: itemsError } = await supabase
+          .from('order_items_2025_11_07_14_31')
+          .select('quantity, product_id, products_2025_11_07_14_31(stock_quantity, name)')
+          .eq('order_id', orderId);
+
+        if (itemsError) throw itemsError;
+
+        // Check if we have enough stock for each item
+        for (const item of orderItems || []) {
+          const currentStock = item.products_2025_11_07_14_31?.stock_quantity || 0;
+          if (currentStock < item.quantity) {
+            throw new Error(`Nicht genügend Lagerbestand für ${item.products_2025_11_07_14_31?.name || 'Produkt'}. Verfügbar: ${currentStock}, Benötigt: ${item.quantity}`);
+          }
+        }
+
+        // Reserve stock for each item
+        for (const item of orderItems || []) {
+          const currentStock = item.products_2025_11_07_14_31?.stock_quantity || 0;
+          const newStock = currentStock - item.quantity;
+          
+          const { error: stockError } = await supabase
+            .from('products_2025_11_07_14_31')
+            .update({ stock_quantity: newStock })
+            .eq('id', item.product_id);
+
+          if (stockError) throw stockError;
+          
+          console.log(`Stock reserved for uncancelled order: Product ${item.product_id}, Quantity: ${item.quantity}, New stock: ${newStock}`);
+        }
+      }
+
+      // Update the order status
       const { error } = await supabase
         .from('orders_2025_11_07_14_31')
         .update({ status })
         .eq('id', orderId);
 
       if (error) throw error;
-      toast({ title: "Bestellstatus aktualisiert" });
+      
+      let message = "Bestellstatus aktualisiert";
+      if (isBeingCancelled) {
+        message = "Bestellung storniert und Lagerbestand wiederhergestellt";
+      } else if (isBeingUncancelled) {
+        message = "Bestellung reaktiviert und Lagerbestand reserviert";
+      }
+      
+      toast({ title: message });
+      
+      // Refresh both orders and products to show updated stock
       fetchOrders();
+      fetchProducts();
     } catch (error: any) {
       console.error('Error updating order status:', error);
       toast({
@@ -595,7 +680,45 @@ const AdminPage = () => {
 
   const deleteOrder = async (orderId: string) => {
     try {
-      // First delete order items
+      // First, get order items to restore stock before deleting
+      const { data: orderItems, error: fetchError } = await supabase
+        .from('order_items_2025_11_07_14_31')
+        .select('quantity, product_id, products_2025_11_07_14_31(stock_quantity, name)')
+        .eq('order_id', orderId);
+
+      if (fetchError) throw fetchError;
+
+      // Check if order is not already cancelled (if not cancelled, we need to restore stock)
+      const { data: order, error: orderFetchError } = await supabase
+        .from('orders_2025_11_07_14_31')
+        .select('status')
+        .eq('id', orderId)
+        .single();
+
+      if (orderFetchError) throw orderFetchError;
+
+      const shouldRestoreStock = order?.status !== 'cancelled';
+      
+      console.log(`Deleting order ${orderId}, Status: ${order?.status}, Should restore stock: ${shouldRestoreStock}`);
+
+      // Restore stock for each item if order was not cancelled
+      if (shouldRestoreStock && orderItems) {
+        for (const item of orderItems) {
+          const currentStock = item.products_2025_11_07_14_31?.stock_quantity || 0;
+          const newStock = currentStock + item.quantity;
+          
+          const { error: stockError } = await supabase
+            .from('products_2025_11_07_14_31')
+            .update({ stock_quantity: newStock })
+            .eq('id', item.product_id);
+
+          if (stockError) throw stockError;
+          
+          console.log(`Stock restored for deleted order: Product ${item.product_id} (${item.products_2025_11_07_14_31?.name}), Quantity: ${item.quantity}, New stock: ${newStock}`);
+        }
+      }
+
+      // Delete order items
       const { error: itemsError } = await supabase
         .from('order_items_2025_11_07_14_31')
         .delete()
@@ -611,8 +734,15 @@ const AdminPage = () => {
 
       if (orderError) throw orderError;
 
-      toast({ title: "Bestellung gelöscht" });
+      const message = shouldRestoreStock 
+        ? "Bestellung gelöscht und Lagerbestand wiederhergestellt"
+        : "Bestellung gelöscht";
+      
+      toast({ title: message });
+      
+      // Refresh both orders and products to show updated stock
       fetchOrders();
+      fetchProducts();
     } catch (error: any) {
       console.error('Error deleting order:', error);
       toast({
@@ -1112,18 +1242,53 @@ const AdminPage = () => {
 
   const removeItemFromOrder = async (orderItemId: string, orderId: string) => {
     try {
-      const { error } = await supabase
+      // First, get the order item details to restore stock
+      const { data: orderItem, error: fetchError } = await supabase
+        .from('order_items_2025_11_07_14_31')
+        .select('quantity, product_id, products_2025_11_07_14_31(stock_quantity)')
+        .eq('id', orderItemId)
+        .single();
+
+      if (fetchError) throw fetchError;
+      if (!orderItem) throw new Error('Bestellposition nicht gefunden');
+
+      const quantityToRestore = orderItem.quantity;
+      const productId = orderItem.product_id;
+      const currentStock = orderItem.products_2025_11_07_14_31?.stock_quantity || 0;
+
+      console.log(`Removing order item: Quantity to restore: ${quantityToRestore}, Current stock: ${currentStock}`);
+
+      // Delete the order item
+      const { error: deleteError } = await supabase
         .from('order_items_2025_11_07_14_31')
         .delete()
         .eq('id', orderItemId);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
+
+      // Restore the stock (add back the quantity that was ordered)
+      const newStock = currentStock + quantityToRestore;
+      
+      const { error: stockError } = await supabase
+        .from('products_2025_11_07_14_31')
+        .update({ stock_quantity: newStock })
+        .eq('id', productId);
+
+      if (stockError) throw stockError;
+
+      console.log(`Stock restored: Product ${productId}, Old stock: ${currentStock}, New stock: ${newStock}`);
 
       // Update order total
       await updateOrderTotal(orderId);
       
-      toast({ title: "Artikel entfernt" });
+      toast({ 
+        title: "Artikel entfernt und Lagerbestand wiederhergestellt",
+        description: `${quantityToRestore} Stück zurück ins Lager, neuer Bestand: ${newStock}`
+      });
+      
+      // Refresh both orders and products to show updated stock
       fetchOrders();
+      fetchProducts();
     } catch (error: any) {
       console.error('Error removing item from order:', error);
       toast({
@@ -1136,18 +1301,61 @@ const AdminPage = () => {
 
   const updateOrderItemQuantity = async (orderItemId: string, orderId: string, newQuantity: number) => {
     try {
-      const { error } = await supabase
+      // First, get the current order item to know the old quantity and product
+      const { data: currentItem, error: fetchError } = await supabase
+        .from('order_items_2025_11_07_14_31')
+        .select('quantity, product_id, products_2025_11_07_14_31(stock_quantity)')
+        .eq('id', orderItemId)
+        .single();
+
+      if (fetchError) throw fetchError;
+      if (!currentItem) throw new Error('Bestellposition nicht gefunden');
+
+      const oldQuantity = currentItem.quantity;
+      const quantityDifference = newQuantity - oldQuantity;
+      const productId = currentItem.product_id;
+      const currentStock = currentItem.products_2025_11_07_14_31?.stock_quantity || 0;
+
+      console.log(`Updating order item: Old quantity: ${oldQuantity}, New quantity: ${newQuantity}, Difference: ${quantityDifference}, Current stock: ${currentStock}`);
+
+      // Check if we have enough stock for the increase
+      if (quantityDifference > 0 && currentStock < quantityDifference) {
+        throw new Error(`Nicht genügend Lagerbestand verfügbar. Verfügbar: ${currentStock}, Benötigt: ${quantityDifference}`);
+      }
+
+      // Update the order item quantity
+      const { error: updateError } = await supabase
         .from('order_items_2025_11_07_14_31')
         .update({ quantity: newQuantity })
         .eq('id', orderItemId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Update the product stock (subtract the difference)
+      // If quantityDifference is positive: more items ordered, reduce stock
+      // If quantityDifference is negative: fewer items ordered, increase stock
+      const newStock = currentStock - quantityDifference;
+      
+      const { error: stockError } = await supabase
+        .from('products_2025_11_07_14_31')
+        .update({ stock_quantity: newStock })
+        .eq('id', productId);
+
+      if (stockError) throw stockError;
+
+      console.log(`Stock updated: Product ${productId}, Old stock: ${currentStock}, New stock: ${newStock}`);
 
       // Update order total
       await updateOrderTotal(orderId);
       
-      toast({ title: "Menge aktualisiert" });
+      toast({ 
+        title: "Menge und Lagerbestand aktualisiert",
+        description: `Neue Menge: ${newQuantity}, Lagerbestand: ${newStock}`
+      });
+      
+      // Refresh both orders and products to show updated stock
       fetchOrders();
+      fetchProducts();
     } catch (error: any) {
       console.error('Error updating item quantity:', error);
       toast({
