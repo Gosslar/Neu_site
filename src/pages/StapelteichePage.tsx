@@ -16,19 +16,19 @@ const StapelteichePage = () => {
       category: 'Brutvögel',
       species: ['Haubentaucher', 'Zwergtaucher', 'Rohrweihe', 'Rohrammer', 'Teichrohrsänger', 'Eisvogel'],
       description: 'Ständige Bewohner der Stapelteiche',
-      image: '/images/nature_wildlife_1.jpeg',
+      image: '/images/DJI_20251123101359_0003_V.jpg',
     },
     {
       category: 'Zugvögel',
       species: ['Bekassine', 'Kampfläufer', 'Uferschnepfe', 'Rotschenkel'],
       description: 'Rastvögel im Frühjahr und Herbst',
-      image: '/images/nature_wildlife_2.jpeg',
+      image: '/images/DJI_20251123101403_0004_V.jpg',
     },
     {
       category: 'Besondere Arten',
       species: ['Silberreiher', 'Graureiher', 'Weißstorch', 'Rotmilan', 'Fischadler'],
       description: 'Seltene und bemerkenswerte Besucher',
-      image: '/images/nature_wildlife_3.jpeg',
+      image: '/images/DJI_20251123101449_0005_V.jpg',
     },
   ];
 
@@ -80,13 +80,13 @@ const StapelteichePage = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="aspect-video relative overflow-hidden rounded-lg mb-8">
           <img
-            src="/images/stapelteiche_landscape_20251107_202516.png"
-            alt="Weetzer Stapelteiche Naturschutzgebiet"
+            src="/images/DJI_20251123100937_0001_V.jpg"
+            alt="Weetzer Stapelteiche - Luftaufnahme der Feuchtgebiete und Wasserflächen"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/20 flex items-end justify-center pb-6">
             <div className="text-center text-white">
-              <p className="text-lg font-semibold">20 Hektar Naturparadies mit 275 Vogelarten</p>
+              <p className="text-lg font-semibold">Luftaufnahme der Weetzer Stapelteiche - Feuchtgebiet mit natürlichen Wasserflächen</p>
             </div>
           </div>
         </div>
