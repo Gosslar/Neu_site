@@ -69,7 +69,6 @@ const Navbar = () => {
       title: 'Was wir machen',
       items: [
         { title: 'Livestream', href: '/livestream', description: 'Live-Übertragungen aus dem Jagdrevier' },
-        { title: 'Blog', href: '/blog', description: 'Erfahrungen und Wissen aus dem Jagdrevier' },
         { title: 'Jagdhunde im Revier', href: '/jagdhunde', description: 'Ausbildung und Einsatz unserer Jagdhunde' },
         { title: 'Rehkitzrettung', href: '/rehkitzrettung', description: 'Moderne Drohnen-Technologie zum Schutz der Rehkitze' },
         { title: 'Weetzer Stapelteiche', href: '/stapelteiche', description: 'Unsere Gewässer und Fischbestand' },
@@ -97,6 +96,14 @@ const Navbar = () => {
                   <Link to="/shop">
                     <NavigationMenuLink className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50">
                       Shop
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                
+                <NavigationMenuItem>
+                  <Link to="/blog">
+                    <NavigationMenuLink className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50">
+                      Blog
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
@@ -188,6 +195,14 @@ const Navbar = () => {
                       onClick={() => setIsOpen(false)}
                     >
                       Shop
+                    </Link>
+                    
+                    <Link
+                      to="/blog"
+                      className="text-lg font-medium"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Blog
                     </Link>
                     
                     <div className="space-y-2">
