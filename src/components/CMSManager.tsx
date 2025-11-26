@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { Edit, Trash2, Plus, Save, Eye, EyeOff, Upload, Image, FileText, Settings, Navigation } from 'lucide-react';
+import { Edit, Trash2, Plus, Save, Eye, EyeOff, Upload, Image, FileText, Settings, Navigation, Copy, Download, Film } from 'lucide-react';
 
 interface CMSContent {
   id: string;
@@ -39,14 +39,30 @@ interface CMSSettings {
   is_public: boolean;
 }
 
+interface CMSMedia {
+  id: string;
+  file_name: string;
+  original_name: string;
+  file_path: string;
+  file_size: number;
+  mime_type: string;
+  alt_text?: string;
+  caption?: string;
+  uploaded_by?: string;
+  created_at: string;
+}
+
 const CMSManager = () => {
   const [contents, setContents] = useState<CMSContent[]>([]);
   const [settings, setSettings] = useState<CMSSettings[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<CMSMedia[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   
   // Dialog states
   const [showContentDialog, setShowContentDialog] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [showMediaDialog, setShowMediaDialog] = useState(false);
   const [editingContent, setEditingContent] = useState<CMSContent | null>(null);
   const [editingSetting, setEditingSetting] = useState<CMSSettings | null>(null);
 
@@ -104,6 +120,19 @@ const CMSManager = () => {
         throw settingsError;
       }
       setSettings(settingsData || []);
+
+      // Fetch media files
+      const { data: mediaData, error: mediaError } = await supabase
+        .from('cms_media_2025_11_18_14_30')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (mediaError) {
+        console.error('Media fetch error:', mediaError);
+        // Don't throw error for media, just log it
+      } else {
+        setMediaFiles(mediaData || []);
+      }
 
     } catch (error: any) {
       console.error('Error fetching CMS data:', error);
@@ -196,6 +225,122 @@ const CMSManager = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    
+    try {
+      for (const file of Array.from(files)) {
+        // Generate unique filename
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `cms/${fileName}`;
+
+        // Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('cms-media')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('cms-media')
+          .getPublicUrl(filePath);
+
+        // Save metadata to database
+        const { error: dbError } = await supabase
+          .from('cms_media_2025_11_18_14_30')
+          .insert({
+            file_name: fileName,
+            original_name: file.name,
+            file_path: publicUrl,
+            file_size: file.size,
+            mime_type: file.type,
+            alt_text: file.name.split('.')[0],
+            caption: ''
+          });
+
+        if (dbError) {
+          throw dbError;
+        }
+      }
+
+      toast({
+        title: "Medien hochgeladen",
+        description: `${files.length} Datei(en) erfolgreich hochgeladen`,
+      });
+
+      // Refresh media list
+      fetchCMSData();
+      
+    } catch (error: any) {
+      console.error('Error uploading files:', error);
+      toast({
+        title: "Fehler beim Hochladen",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      // Reset file input
+      event.target.value = '';
+    }
+  };
+
+  const deleteMedia = async (id: string, filePath: string) => {
+    if (!confirm('Sind Sie sicher, dass Sie diese Datei löschen möchten?')) {
+      return;
+    }
+
+    try {
+      // Extract file path from URL for storage deletion
+      const pathParts = filePath.split('/cms-media/');
+      const storagePath = pathParts[1];
+
+      // Delete from storage
+      if (storagePath) {
+        await supabase.storage
+          .from('cms-media')
+          .remove([storagePath]);
+      }
+
+      // Delete from database
+      const { error } = await supabase
+        .from('cms_media_2025_11_18_14_30')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Datei gelöscht",
+        description: "Die Datei wurde erfolgreich gelöscht",
+      });
+
+      fetchCMSData();
+    } catch (error: any) {
+      console.error('Error deleting media:', error);
+      toast({
+        title: "Fehler beim Löschen",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const copyMediaUrl = (url: string) => {
+    navigator.clipboard.writeText(url);
+    toast({
+      title: "URL kopiert",
+      description: "Die Medien-URL wurde in die Zwischenablage kopiert",
+    });
   };
 
   const deleteContent = async (id: string) => {
@@ -450,13 +595,119 @@ const CMSManager = () => {
 
         {/* Media Management Tab */}
         <TabsContent value="media" className="space-y-4">
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-muted-foreground">
-                Medien-Verwaltung wird in der nächsten Version implementiert.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-semibold">Medien-Bibliothek</h3>
+            <div className="flex gap-2">
+              <input
+                type="file"
+                id="media-upload"
+                multiple
+                accept="image/*,video/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <Button
+                onClick={() => document.getElementById('media-upload')?.click()}
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
+                {uploading ? 'Lade hoch...' : 'Medien hochladen'}
+              </Button>
+            </div>
+          </div>
+
+          {mediaFiles.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Image className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Keine Medien vorhanden</h3>
+                <p className="text-muted-foreground mb-4">
+                  Laden Sie Bilder oder Videos hoch, um sie in Ihren Inhalten zu verwenden.
+                </p>
+                <Button
+                  onClick={() => document.getElementById('media-upload')?.click()}
+                  disabled={uploading}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Erste Datei hochladen
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {mediaFiles.map((media) => (
+                <Card key={media.id} className="overflow-hidden">
+                  <div className="aspect-square relative bg-muted">
+                    {media.mime_type.startsWith('image/') ? (
+                      <img
+                        src={media.file_path}
+                        alt={media.alt_text || media.original_name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : media.mime_type.startsWith('video/') ? (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                        <Film className="h-12 w-12 text-gray-400" />
+                        <video
+                          src={media.file_path}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          muted
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <FileText className="h-12 w-12 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm truncate" title={media.original_name}>
+                        {media.original_name}
+                      </h4>
+                      
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{(media.file_size / 1024).toFixed(1)} KB</span>
+                        <span>{media.mime_type.split('/')[0]}</span>
+                      </div>
+                      
+                      <div className="flex gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyMediaUrl(media.file_path)}
+                          className="flex-1"
+                        >
+                          <Copy className="h-3 w-3 mr-1" />
+                          URL
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(media.file_path, '_blank')}
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteMedia(media.id, media.file_path)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 

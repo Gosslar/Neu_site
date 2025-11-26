@@ -44,7 +44,6 @@ interface BlogCategory {
 }
 
 const BlogPage = () => {
-  const { slug } = useParams();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [featuredPosts, setFeaturedPosts] = useState<BlogPost[]>([]);
@@ -94,7 +93,18 @@ const BlogPage = () => {
 
   const incrementViewCount = async (postId: string) => {
     try {
-      await supabase.rpc('increment_blog_view_count', { post_id: postId });
+      const { data: currentPost } = await supabase
+        .from('blog_posts_2025_11_18_14_00')
+        .select('view_count')
+        .eq('id', postId)
+        .single();
+      
+      const newCount = (currentPost?.view_count || 0) + 1;
+      
+      await supabase
+        .from('blog_posts_2025_11_18_14_00')
+        .update({ view_count: newCount })
+        .eq('id', postId);
     } catch (error) {
       console.error('Error incrementing view count:', error);
     }
