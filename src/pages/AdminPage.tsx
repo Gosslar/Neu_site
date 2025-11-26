@@ -18,6 +18,7 @@ import { toast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import CMSManager from '@/components/CMSManager';
 import LivestreamManager from '@/components/LivestreamManager';
+import BlogManager from '@/components/BlogManager';
 
 interface Product {
   id: string;
@@ -1567,6 +1568,7 @@ const AdminPage = () => {
             <TabsTrigger value="users">Benutzer</TabsTrigger>
             <TabsTrigger value="cms">CMS</TabsTrigger>
             <TabsTrigger value="livestream">Livestream</TabsTrigger>
+            <TabsTrigger value="blog">Blog</TabsTrigger>
           </TabsList>
 
           {/* Products Tab */}
@@ -2411,6 +2413,11 @@ const AdminPage = () => {
           {/* Livestream Tab */}
           <TabsContent value="livestream">
             <LivestreamManager />
+          </TabsContent>
+
+          {/* Blog Tab */}
+          <TabsContent value="blog">
+            <BlogManager />
           </TabsContent>
         </Tabs>
       </div>

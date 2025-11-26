@@ -19,6 +19,8 @@ import PraedatorenPage from '@/pages/PraedatorenPage';
 import AdminPage from '@/pages/AdminPage';
 import AuthPage from '@/pages/AuthPage';
 import LivestreamPage from '@/pages/LivestreamPage';
+import BlogPage from '@/pages/BlogPage';
+import BlogPostPage from '@/pages/BlogPostPage';
 import ImpressumPage from '@/pages/ImpressumPage';
 import DatenschutzPage from '@/pages/DatenschutzPage';
 import './App.css';
@@ -46,6 +48,8 @@ function App() {
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/livestream" element={<LivestreamPage />} />
+                <Route path="/blog" element={<BlogPage />} />
+                <Route path="/blog/:slug" element={<BlogPostPage />} />
                 <Route path="/impressum" element={<ImpressumPage />} />
                 <Route path="/datenschutz" element={<DatenschutzPage />} />
               </Routes>

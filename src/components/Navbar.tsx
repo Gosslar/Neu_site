@@ -69,6 +69,7 @@ const Navbar = () => {
       title: 'Was wir machen',
       items: [
         { title: 'Livestream', href: '/livestream', description: 'Live-Übertragungen aus dem Jagdrevier' },
+        { title: 'Blog', href: '/blog', description: 'Erfahrungen und Wissen aus dem Jagdrevier' },
         { title: 'Jagdhunde im Revier', href: '/jagdhunde', description: 'Ausbildung und Einsatz unserer Jagdhunde' },
         { title: 'Rehkitzrettung', href: '/rehkitzrettung', description: 'Moderne Drohnen-Technologie zum Schutz der Rehkitze' },
         { title: 'Weetzer Stapelteiche', href: '/stapelteiche', description: 'Unsere Gewässer und Fischbestand' },
