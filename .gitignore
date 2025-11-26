@@ -43,6 +43,12 @@ coverage/
 
 # --- Build outputs / caches ---
 dist/
+!dist/.htaccess
+!dist/index.php
+!dist/robots.txt
+!dist/favicon.ico
+!dist/index.html
+!dist/assets/
 build/
 electron-dist/
 dist-electron/
