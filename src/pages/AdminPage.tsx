@@ -18,7 +18,7 @@ import { toast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import CMSManager from '@/components/CMSManager';
 import LivestreamManager from '@/components/LivestreamManager';
-import BlogManager from '@/components/BlogManager';
+import BlogManager from '@/components/BlogManagerSimple';
 
 interface Product {
   id: string;
