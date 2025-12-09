@@ -12,11 +12,146 @@
     <meta property="og:description" content="Tradition trifft Moderne - Hege und Naturschutz im Calenberger Land. Ihr Partner für nachhaltige Jagd und verantwortungsvollen Naturschutz." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/images/hunting_equipment_1.jpeg" />
+    
+    <!-- Fallback CSS for loading state -->
+    <style>
+      .loading-fallback {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #1e3a2e 0%, #2d5a3d 100%);
+        color: white;
+        text-align: center;
+        padding: 20px;
+      }
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255,255,255,0.3);
+        border-top: 4px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .error-message {
+        background: rgba(255,255,255,0.1);
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        max-width: 500px;
+      }
+      .retry-button {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 15px;
+        font-size: 16px;
+      }
+      .retry-button:hover {
+        background: #45a049;
+      }
+    </style>
+    
+    <!-- JavaScript Error Handling -->
+    <script>
+      // Global error handler
+      window.addEventListener('error', function(e) {
+        console.error('JavaScript Error:', e.error);
+        showErrorMessage('JavaScript-Fehler: ' + e.message);
+      });
+      
+      // Unhandled promise rejection handler
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('Unhandled Promise Rejection:', e.reason);
+        showErrorMessage('Netzwerk-Fehler: ' + e.reason);
+      });
+      
+      function showErrorMessage(message) {
+        const root = document.getElementById('root');
+        if (root) {
+          root.innerHTML = `
+            <div class="loading-fallback">
+              <h1>🦌 Jagdrevier Weetzen</h1>
+              <div class="error-message">
+                <h3>⚠️ Ladefehler</h3>
+                <p>${message}</p>
+                <p>Bitte versuchen Sie es erneut oder kontaktieren Sie uns.</p>
+                <button class="retry-button" onclick="window.location.reload()">
+                  Seite neu laden
+                </button>
+              </div>
+              <div style="margin-top: 30px;">
+                <p><strong>Kontakt:</strong></p>
+                <p>📧 info@jagdrevier-weetzen.de</p>
+                <p>📞 Telefon verfügbar</p>
+              </div>
+            </div>
+          `;
+        }
+      }
+      
+      // Timeout fallback if React doesn't load
+      setTimeout(function() {
+        const root = document.getElementById('root');
+        if (root && root.innerHTML.trim() === '') {
+          showErrorMessage('Die Website lädt länger als erwartet. Möglicherweise ist JavaScript deaktiviert oder es gibt Netzwerkprobleme.');
+        }
+      }, 10000); // 10 seconds timeout
+    </script>
+    
     <script type="module" crossorigin src="./assets/index-Dlb0yXfn.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-_Fc2wHWL.css">
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Loading fallback while JavaScript loads -->
+      <div class="loading-fallback">
+        <h1>🦌 Jagdrevier Weetzen</h1>
+        <div class="loading-spinner"></div>
+        <h2>Lädt...</h2>
+        <p>Hege und Naturschutz im Calenberger Land</p>
+        <div style="margin-top: 30px;">
+          <p>Falls die Seite nicht lädt:</p>
+          <button class="retry-button" onclick="window.location.reload()">
+            Neu laden
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Fallback content for no-JavaScript users -->
+    <noscript>
+      <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+        <h1>🦌 Jagdrevier Weetzen</h1>
+        <h2>Hege und Naturschutz im Calenberger Land</h2>
+        <p><strong>JavaScript ist erforderlich</strong></p>
+        <p>Diese Website benötigt JavaScript für die volle Funktionalität.</p>
+        <p>Bitte aktivieren Sie JavaScript in Ihrem Browser.</p>
+        <hr>
+        <h3>Kontakt</h3>
+        <p>📧 info@jagdrevier-weetzen.de</p>
+        <p>📞 Telefon verfügbar</p>
+        <h3>Unsere Themen</h3>
+        <ul style="text-align: left; display: inline-block;">
+          <li>Nachhaltige Jagd und Hege</li>
+          <li>Wildtiermanagement</li>
+          <li>Jagdhunde-Ausbildung</li>
+          <li>Rehkitzrettung mit Drohnen</li>
+          <li>Weetzer Stapelteiche</li>
+          <li>Prädatorenmanagement</li>
+        </ul>
+      </div>
+    </noscript>
   </body>
 </html>

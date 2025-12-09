@@ -1,0 +1,119 @@
+# Alfahosting-optimierte Apache-Konfiguration für React SPA
+RewriteEngine On
+
+# Fehlerbehandlung
+ErrorDocument 404 /index.html
+ErrorDocument 403 /index.html
+ErrorDocument 500 /index.html
+
+# Security Headers (Alfahosting-kompatibel)
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options SAMEORIGIN
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set X-Content-Type-Options nosniff
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # CORS Headers für Assets
+    <FilesMatch "\.(js|css|woff|woff2|ttf|eot|svg|png|jpg|jpeg|gif|ico)$">
+        Header set Access-Control-Allow-Origin "*"
+    </FilesMatch>
+</IfModule>
+
+# GZIP Compression (falls verfügbar)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+# Browser Caching
+<IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType application/pdf "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+# MIME Types (wichtig für Alfahosting)
+AddType application/javascript .js
+AddType text/css .css
+AddType application/json .json
+AddType font/woff .woff
+AddType font/woff2 .woff2
+
+# Block access to sensitive files
+<FilesMatch "\.(env|log|sql|config|ini|md)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block access to hidden files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Alfahosting-spezifische SPA-Routing-Regeln
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Handle Angular and other hash-based routing
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !^/api/
+    RewriteCond %{REQUEST_URI} !^/assets/
+    RewriteCond %{REQUEST_URI} !^/images/
+    RewriteCond %{REQUEST_URI} !\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|xml|txt)$
+    
+    # SPA Routing - alle Routen zu index.html
+    RewriteRule ^(.*)$ /index.html [QSA,L]
+    
+    # Spezifische Routen für bessere Kompatibilität
+    RewriteRule ^blog/?$ /index.html [QSA,L]
+    RewriteRule ^blog/(.+)$ /index.html [QSA,L]
+    RewriteRule ^admin/?$ /index.html [QSA,L]
+    RewriteRule ^auth/?$ /index.html [QSA,L]
+    RewriteRule ^livestream/?$ /index.html [QSA,L]
+    RewriteRule ^shop/?$ /index.html [QSA,L]
+    RewriteRule ^product/(.+)$ /index.html [QSA,L]
+    RewriteRule ^cart/?$ /index.html [QSA,L]
+    RewriteRule ^checkout/?$ /index.html [QSA,L]
+    RewriteRule ^profile/?$ /index.html [QSA,L]
+    RewriteRule ^jagdhunde/?$ /index.html [QSA,L]
+    RewriteRule ^rehkitzrettung/?$ /index.html [QSA,L]
+    RewriteRule ^stapelteiche/?$ /index.html [QSA,L]
+    RewriteRule ^revier/?$ /index.html [QSA,L]
+    RewriteRule ^praedatoren/?$ /index.html [QSA,L]
+    RewriteRule ^impressum/?$ /index.html [QSA,L]
+    RewriteRule ^datenschutz/?$ /index.html [QSA,L]
+</IfModule>
+
+# Fallback für Server ohne mod_rewrite
+<IfModule !mod_rewrite.c>
+    # Redirect alle 404s zu index.html
+    ErrorDocument 404 /index.html
+</IfModule>
+
+# PHP-Einstellungen für bessere Kompatibilität
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+    php_value max_execution_time 30
+    php_value memory_limit 128M
+</IfModule>

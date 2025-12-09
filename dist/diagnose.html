@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnose - Jagdrevier Weetzen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3a2e 0%, #2d5a3d 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 10px;
+        }
+        .status-ok { color: #4CAF50; }
+        .status-error { color: #f44336; }
+        .status-warning { color: #ff9800; }
+        .test-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        .test-item.error {
+            border-left-color: #f44336;
+        }
+        .test-item.warning {
+            border-left-color: #ff9800;
+        }
+        pre {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .button {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦌 Jagdrevier Weetzen - System-Diagnose</h1>
+        <p>Diese Seite hilft bei der Diagnose von Problemen mit der Website.</p>
+        
+        <h2>📋 System-Tests</h2>
+        
+        <div class="test-item" id="js-test">
+            <h3>❌ JavaScript-Test</h3>
+            <p>JavaScript ist nicht aktiv oder funktioniert nicht korrekt.</p>
+        </div>
+        
+        <div class="test-item">
+            <h3>✅ HTML-Grundfunktion</h3>
+            <p>Diese Seite wird korrekt angezeigt - HTML funktioniert.</p>
+        </div>
+        
+        <div class="test-item">
+            <h3>🔍 Browser-Informationen</h3>
+            <p id="browser-info">Wird geladen...</p>
+        </div>
+        
+        <div class="test-item">
+            <h3>📁 Datei-Tests</h3>
+            <div id="file-tests">
+                <p>Teste Zugriff auf wichtige Dateien...</p>
+            </div>
+        </div>
+        
+        <h2>🔧 Lösungsvorschläge</h2>
+        
+        <div class="test-item warning">
+            <h3>⚠️ Häufige Probleme bei Alfahosting</h3>
+            <ul>
+                <li><strong>JavaScript deaktiviert:</strong> Aktivieren Sie JavaScript in Ihrem Browser</li>
+                <li><strong>Dateien nicht hochgeladen:</strong> Prüfen Sie ob alle Dateien korrekt übertragen wurden</li>
+                <li><strong>Pfad-Probleme:</strong> Stellen Sie sicher, dass die Website im richtigen Verzeichnis liegt</li>
+                <li><strong>Cache-Probleme:</strong> Leeren Sie den Browser-Cache (Strg+F5)</li>
+                <li><strong>PHP-Probleme:</strong> Prüfen Sie die PHP-Konfiguration bei Alfahosting</li>
+            </ul>
+        </div>
+        
+        <h2>🌐 Navigation</h2>
+        <a href="/" class="button">🏠 Startseite</a>
+        <a href="/blog" class="button">📝 Blog</a>
+        <a href="/admin" class="button">🎛️ Admin</a>
+        <a href="javascript:location.reload()" class="button">🔄 Neu laden</a>
+        
+        <h2>📞 Support</h2>
+        <div class="test-item">
+            <p><strong>Bei anhaltenden Problemen:</strong></p>
+            <p>📧 E-Mail: info@jagdrevier-weetzen.de</p>
+            <p>📞 Telefon: [Nummer einfügen]</p>
+            <p>🌐 Backup-URL: https://nbwiku3f4s.skywork.website</p>
+        </div>
+        
+        <div style="margin-top: 30px; font-size: 12px; opacity: 0.7;">
+            <p>Diagnose-Seite erstellt am: <span id="timestamp"></span></p>
+            <p>URL: <span id="current-url"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript-Test
+        document.getElementById('js-test').innerHTML = `
+            <h3>✅ JavaScript-Test</h3>
+            <p class="status-ok">JavaScript funktioniert korrekt!</p>
+        `;
+        document.getElementById('js-test').className = 'test-item';
+        
+        // Browser-Informationen
+        document.getElementById('browser-info').innerHTML = `
+            <strong>Browser:</strong> ${navigator.userAgent}<br>
+            <strong>Sprache:</strong> ${navigator.language}<br>
+            <strong>Plattform:</strong> ${navigator.platform}<br>
+            <strong>Cookies aktiviert:</strong> ${navigator.cookieEnabled ? 'Ja' : 'Nein'}<br>
+            <strong>Online:</strong> ${navigator.onLine ? 'Ja' : 'Nein'}
+        `;
+        
+        // Zeitstempel
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('de-DE');
+        document.getElementById('current-url').textContent = window.location.href;
+        
+        // Datei-Tests
+        const filesToTest = [
+            './assets/index-Dlb0yXfn.js',
+            './assets/index-_Fc2wHWL.css',
+            './images/hunting_equipment_1.jpeg'
+        ];
+        
+        let fileTestResults = '';
+        let testsCompleted = 0;
+        
+        filesToTest.forEach(file => {
+            fetch(file)
+                .then(response => {
+                    if (response.ok) {
+                        fileTestResults += `✅ ${file} - OK<br>`;
+                    } else {
+                        fileTestResults += `❌ ${file} - Fehler ${response.status}<br>`;
+                    }
+                })
+                .catch(error => {
+                    fileTestResults += `❌ ${file} - Nicht erreichbar<br>`;
+                })
+                .finally(() => {
+                    testsCompleted++;
+                    if (testsCompleted === filesToTest.length) {
+                        document.getElementById('file-tests').innerHTML = fileTestResults;
+                    }
+                });
+        });
+        
+        // Console-Log für Debugging
+        console.log('Jagdrevier Weetzen - Diagnose-Seite geladen');
+        console.log('Aktuelle URL:', window.location.href);
+        console.log('User Agent:', navigator.userAgent);
+    </script>
+</body>
+</html>
