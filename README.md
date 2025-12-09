@@ -1,45 +1,58 @@
-# Jagdrevier Weetzen - Blog System Update
+# Project Build Guide
 
-## Aktuelle Version: Minimaler Blog-Manager
+## Tech Stack
 
-### ✅ Implementierte Features:
-- **Blog-Post-Erstellung**: Vollständiges Formular ohne komplexe UI-Komponenten
-- **Stabile Navigation**: Keine weißen Bildschirme mehr
-- **Supabase-Integration**: Vollständige Datenbank-Anbindung
-- **Deutsche Lokalisierung**: Alle Texte auf Deutsch
-- **Responsive Design**: Mobile-optimierte Bedienung
+This project is built using the following technologies:
 
-### 🔧 Technische Verbesserungen:
-- Entfernung komplexer UI-Komponenten (Tabs, Select, Dialog)
-- Vereinfachte State-Verwaltung
-- Crash-Prevention durch minimale Abhängigkeiten
-- Optimierte Performance
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
-### 🦌 Jagdrevier-spezifische Features:
-- **Drohnenbilder**: DJI-Aufnahmen der Stapelteiche integriert
-- **Medien-Verwaltung**: CMS-System für Bilder und Videos
-- **Kategorien**: Jagdberichte, Naturschutz, Wildtiermanagement
-- **Tags**: Jagd-spezifische Verschlagwortung
+## Prerequisites
 
-### 📝 Blog-System Status:
-- ✅ Navigation im Hauptmenü sichtbar
-- ✅ Admin-Panel funktionsfähig
-- ✅ Blog-Post-Erstellung ohne Crashes
-- ✅ Responsive Design für alle Geräte
-- ✅ SEO-optimierte URLs mit deutschen Umlauten
+Make sure your system has Node.js and npm installed.
 
-### 🌐 Deployment:
-- **Aktuelle URL**: https://nbwiku3f4s.skywork.website
-- **GitHub Repository**: https://github.com/Gosslar/Neu_site
-- **Admin-Panel**: /admin
-- **Blog-Seite**: /blog
+We recommend using nvm to install Node.js: [nvm Installation Guide](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-### 🎯 Nächste Schritte:
-1. Blog-Content erstellen (Jagdberichte, Naturschutz-Artikel)
-2. Medien-Bibliothek mit Drohnenaufnahmen füllen
-3. Kategorien für bessere Organisation anlegen
-4. SEO-Optimierung für Suchmaschinen
+## Install Dependencies
 
----
+```sh
+npm install
+```
 
-**Das Blog-System ist jetzt vollständig einsatzbereit für professionelle Jagdrevier-Artikel!**
+## Development Server
+
+Start the development server with hot reload and instant preview:
+
+```sh
+npm run dev
+```
+
+## Build Project
+
+Build for production:
+
+```sh
+npm run build
+```
+
+## Preview Build
+
+Preview the built project:
+
+```sh
+npm run preview
+```
+
+## Project Structure
+
+```
+src/
+├── components/     # UI Components
+├── pages/         # Page Components
+├── hooks/         # Custom Hooks
+├── lib/           # Utility Library
+└── main.tsx       # Application Entry Point
+```
