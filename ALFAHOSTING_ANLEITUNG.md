@@ -3,123 +3,70 @@
 ## 🚀 Schritt-für-Schritt Anleitung für Alfahosting
 
 ### 1. Dateien herunterladen
-Laden Sie alle Dateien aus dem `dist/` Verzeichnis herunter:
-- index.html (Haupt-HTML-Datei)
-- index.php (PHP-Fallback für Routing)
-- .htaccess (Apache-Konfiguration)
-- diagnose.html (Diagnose-Tool)
+Laden Sie alle Dateien aus dem `dist/` Verzeichnis von GitHub herunter:
+- index.html (Haupt-HTML-Datei mit Fehlerbehandlung)
+- index.php (PHP-Fallback für SPA-Routing)
+- .htaccess (Apache-Konfiguration für Alfahosting)
+- diagnose.html (System-Diagnose-Tool)
 - assets/ (JavaScript und CSS Dateien)
-- images/ (Bilder und Medien)
+- images/ (DJI-Drohnenbilder und Medien)
 
 ### 2. Upload zu Alfahosting
 1. Verbinden Sie sich via FTP zu Ihrem Alfahosting-Account
 2. Navigieren Sie zum Hauptverzeichnis Ihrer Domain (meist `/`)
 3. Laden Sie ALLE Dateien aus dem `dist/` Verzeichnis hoch
-4. Stellen Sie sicher, dass die Verzeichnisstruktur erhalten bleibt:
-   ```
-   /
-   ├── index.html
-   ├── index.php
-   ├── .htaccess
-   ├── diagnose.html
-   ├── assets/
-   │   ├── index-Dlb0yXfn.js
-   │   ├── index-_Fc2wHWL.css
-   │   └── weitere Asset-Dateien...
-   └── images/
-       ├── DJI_20251123100937_0001_V.jpg
-       └── weitere Bilder...
-   ```
+4. Stellen Sie sicher, dass die Verzeichnisstruktur erhalten bleibt
 
-### 3. Berechtigungen prüfen
-- Stellen Sie sicher, dass alle Dateien lesbar sind (644)
-- Verzeichnisse sollten ausführbar sein (755)
-- Die .htaccess-Datei muss lesbar sein
+### 3. Erste Diagnose
+**WICHTIG**: Testen Sie zuerst: `ihre-domain.de/diagnose.html`
 
-### 4. Testen der Website
-1. Öffnen Sie Ihre Domain im Browser
-2. Falls die Seite weiß bleibt, öffnen Sie: `ihre-domain.de/diagnose.html`
-3. Die Diagnose-Seite zeigt Ihnen, was funktioniert und was nicht
+Das Diagnose-Tool zeigt Ihnen sofort:
+- ✅ Welche Dateien korrekt geladen werden
+- ❌ Welche Probleme auftreten
+- 🔧 Konkrete Lösungsvorschläge
 
-### 5. Häufige Probleme und Lösungen
+### 4. Häufige Probleme und Lösungen
 
 #### Problem: Weiße Seite
-**Lösung 1 - JavaScript-Dateien prüfen:**
-- Öffnen Sie `ihre-domain.de/diagnose.html`
-- Prüfen Sie, ob die Asset-Dateien erreichbar sind
-- Falls nicht: Laden Sie die `assets/` Dateien erneut hoch
+**Sofort-Lösung:**
+1. Öffnen Sie `ihre-domain.de/diagnose.html`
+2. Das Tool zeigt Ihnen genau, was nicht funktioniert
+3. Folgen Sie den angezeigten Lösungsvorschlägen
 
-**Lösung 2 - .htaccess-Probleme:**
-- Benennen Sie `.htaccess` temporär um (z.B. zu `.htaccess-backup`)
-- Testen Sie die Seite erneut
-- Falls es funktioniert: .htaccess-Konfiguration anpassen
+**Häufige Ursachen:**
+- JavaScript-Dateien nicht hochgeladen → assets/ Ordner prüfen
+- .htaccess-Probleme → Temporär umbenennen und testen
+- Falsche Berechtigungen → 644 für Dateien, 755 für Ordner
 
-**Lösung 3 - PHP-Fallback aktivieren:**
-- Stellen Sie sicher, dass `index.php` hochgeladen wurde
-- Testen Sie: `ihre-domain.de/index.php`
-
-#### Problem: 404-Fehler bei Unterseiten
+#### Problem: Blog/Admin nicht erreichbar
 **Lösung:**
-- Prüfen Sie, ob `.htaccess` korrekt hochgeladen wurde
-- Testen Sie: `ihre-domain.de/blog` sollte funktionieren
-- Falls nicht: Nutzen Sie `ihre-domain.de/index.php/blog`
+- Testen Sie: `ihre-domain.de/index.php/blog`
+- Falls das funktioniert: .htaccess-Problem
+- Prüfen Sie mod_rewrite bei Alfahosting
 
-#### Problem: CSS/JavaScript lädt nicht
-**Lösung:**
-- Prüfen Sie die Dateiberechtigungen (644 für Dateien)
-- Stellen Sie sicher, dass der `assets/` Ordner vollständig hochgeladen wurde
-- Leeren Sie den Browser-Cache (Strg+F5)
+### 5. Alfahosting-spezifische Einstellungen
 
-### 6. Alfahosting-spezifische Einstellungen
+#### Empfohlene PHP-Version:
+- PHP 8.0 oder höher
+- Mindestens PHP 7.4
 
-#### PHP-Version:
-- Empfohlen: PHP 8.0 oder höher
-- Mindestens: PHP 7.4
+#### Benötigte Apache-Module:
+- mod_rewrite (für SPA-Routing)
+- mod_headers (für Performance)
 
-#### Apache-Module:
-- mod_rewrite sollte aktiviert sein
-- mod_headers für bessere Performance
+### 6. Test-URLs
+Testen Sie diese URLs in folgender Reihenfolge:
+1. `ihre-domain.de/diagnose.html` (Diagnose)
+2. `ihre-domain.de` (Hauptseite)
+3. `ihre-domain.de/blog` (Blog-Routing)
+4. `ihre-domain.de/admin` (Admin-Panel)
 
-#### Fehlerbehandlung:
-- Die Website hat automatische Fallbacks
-- Bei Problemen wird eine benutzerfreundliche Fehlerseite angezeigt
-
-### 7. Backup-URLs für Tests
-Falls die Hauptseite nicht funktioniert, testen Sie diese URLs:
-- `ihre-domain.de/diagnose.html` (Diagnose-Tool)
-- `ihre-domain.de/index.php` (PHP-Fallback)
-- `ihre-domain.de/index.html` (Direkte HTML-Datei)
-
-### 8. Support und Debugging
-
-#### Browser-Konsole prüfen:
-1. F12 drücken → Console-Tab
-2. Seite neu laden
-3. Fehlermeldungen notieren
-
-#### Diagnose-Tool nutzen:
-- Öffnen Sie `ihre-domain.de/diagnose.html`
-- Das Tool zeigt automatisch alle Probleme an
-- Folgen Sie den Lösungsvorschlägen
-
-#### Bei anhaltenden Problemen:
-- Kontaktieren Sie den Alfahosting-Support
-- Senden Sie Screenshots der Diagnose-Seite
-- Erwähnen Sie, dass es sich um eine React SPA handelt
-
-### 9. Erfolgskontrolle
-Die Website funktioniert korrekt, wenn:
-- ✅ Startseite lädt ohne weiße Seite
-- ✅ Navigation funktioniert (Blog, Admin, etc.)
-- ✅ Bilder werden angezeigt
-- ✅ Admin-Panel ist erreichbar unter `/admin`
-- ✅ Blog-Seite ist erreichbar unter `/blog`
-
-### 10. Wartung
-- Regelmäßige Backups der Website-Dateien
-- Updates durch erneuten Upload des `dist/` Verzeichnisses
-- Überwachung der Diagnose-Seite bei Problemen
+### 7. Support
+Bei Problemen:
+1. Screenshot der diagnose.html-Seite machen
+2. Browser-Konsole (F12) prüfen
+3. Alfahosting-Support mit Diagnose-Ergebnissen kontaktieren
 
 ---
 
-**Bei Fragen oder Problemen nutzen Sie die Diagnose-Seite oder kontaktieren Sie den Support!**
+**Die Website hat umfassende Fallback-Mechanismen für Alfahosting!**

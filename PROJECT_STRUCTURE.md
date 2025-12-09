@@ -24,7 +24,14 @@
 - CMS media management integrated
 
 ## Deployment:
-- dist/ (Production build)
-- .htaccess, index.php (Routing fallbacks)
+- dist/ (Production build with Alfahosting optimizations)
+- dist/.htaccess (Apache SPA routing)
+- dist/index.php (PHP fallback routing)
+- dist/diagnose.html (Troubleshooting tool)
+
+## Alfahosting Files:
+- ALFAHOSTING_ANLEITUNG.md (Deployment guide)
+- Enhanced error handling in all deployment files
+- Comprehensive fallback mechanisms
 
 Current Status: ALL SYSTEMS OPERATIONAL
