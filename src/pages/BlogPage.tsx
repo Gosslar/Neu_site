@@ -189,18 +189,24 @@ const BlogPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-green-800 to-blue-600 text-white py-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Hero Section with weetzen.jpg background */}
+      <div 
+        className="relative text-white py-16 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(30, 58, 46, 0.8), rgba(45, 90, 61, 0.8)), url("./images/weetzen.jpg")',
+          minHeight: '400px'
+        }}
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-lg">
               🦌 Jagd Weetzen Blog
             </h1>
-            <p className="text-xl text-green-100 max-w-2xl mx-auto">
+            <p className="text-xl text-green-100 max-w-2xl mx-auto drop-shadow-md">
               Erfahrungen, Wissen und Geschichten aus dem Jagdrevier Weetzen
             </p>
             {error && (
-              <div className="mt-4 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+              <div className="mt-4 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg backdrop-blur-sm">
                 <div className="flex items-center gap-2 text-yellow-100">
                   <AlertCircle className="h-4 w-4" />
                   <span className="text-sm">Fallback-Modus: Beispiel-Artikel werden angezeigt</span>
