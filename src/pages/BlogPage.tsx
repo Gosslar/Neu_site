@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
 import { 
   Calendar, 
   Eye, 
   User, 
-  Tag, 
   Search, 
-  Filter,
   ArrowRight,
-  Clock,
-  Share2
+  BookOpen,
+  AlertCircle
 } from 'lucide-react';
 
 interface BlogPost {
@@ -35,21 +31,79 @@ interface BlogPost {
   created_at: string;
 }
 
-interface BlogCategory {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  color: string;
-}
+// Fallback-Daten für den Fall, dass Supabase nicht verfügbar ist
+const fallbackPosts: BlogPost[] = [
+  {
+    id: '1',
+    title: 'Jagdhunde im Revier Weetzen - Ausbildung und Einsatz',
+    slug: 'jagdhunde-im-revier-weetzen',
+    excerpt: 'Unsere Jagdhunde sind unverzichtbare Partner bei der Jagd. Erfahren Sie mehr über ihre Ausbildung und ihren Einsatz im Revier.',
+    content: 'Vollständiger Artikel über Jagdhunde...',
+    featured_image: './images/hunting_dogs_1.webp',
+    author_name: 'Jagdrevier Weetzen',
+    status: 'published',
+    category: 'Jagdhunde',
+    tags: ['Jagdhunde', 'Ausbildung', 'Revier'],
+    view_count: 156,
+    is_featured: true,
+    published_at: '2024-11-20T10:00:00Z',
+    created_at: '2024-11-20T10:00:00Z'
+  },
+  {
+    id: '2',
+    title: 'Rehkitzrettung mit Drohnen - Moderne Technologie im Naturschutz',
+    slug: 'rehkitzrettung-mit-drohnen',
+    excerpt: 'Wie wir mit modernster Drohnen-Technologie Rehkitze vor der Mahd retten und damit einen wichtigen Beitrag zum Tierschutz leisten.',
+    content: 'Vollständiger Artikel über Rehkitzrettung...',
+    featured_image: './images/fawn_rescue_drone_scene_20251107_202453.png',
+    author_name: 'Jagdrevier Weetzen',
+    status: 'published',
+    category: 'Naturschutz',
+    tags: ['Rehkitzrettung', 'Drohnen', 'Tierschutz'],
+    view_count: 243,
+    is_featured: true,
+    published_at: '2024-11-18T14:30:00Z',
+    created_at: '2024-11-18T14:30:00Z'
+  },
+  {
+    id: '3',
+    title: 'Die Weetzer Stapelteiche - Ein Paradies für Wasservögel',
+    slug: 'weetzer-stapelteiche-wasservoegel',
+    excerpt: 'Unsere Stapelteiche sind nicht nur ein wichtiger Lebensraum für Wasservögel, sondern auch ein beliebtes Ziel für Naturbeobachter.',
+    content: 'Vollständiger Artikel über die Stapelteiche...',
+    featured_image: './images/DJI_20251123100937_0001_V.jpg',
+    author_name: 'Jagdrevier Weetzen',
+    status: 'published',
+    category: 'Gewässer',
+    tags: ['Stapelteiche', 'Wasservögel', 'Naturbeobachtung'],
+    view_count: 189,
+    is_featured: false,
+    published_at: '2024-11-15T09:15:00Z',
+    created_at: '2024-11-15T09:15:00Z'
+  },
+  {
+    id: '4',
+    title: 'Prädatorenmanagement - Bestandsregulierung im Revier',
+    slug: 'praedatorenmanagement-bestandsregulierung',
+    excerpt: 'Wie wir durch gezieltes Prädatorenmanagement das ökologische Gleichgewicht in unserem Revier erhalten.',
+    content: 'Vollständiger Artikel über Prädatorenmanagement...',
+    featured_image: './images/nature_wildlife_1.jpeg',
+    author_name: 'Jagdrevier Weetzen',
+    status: 'published',
+    category: 'Wildtiermanagement',
+    tags: ['Prädatoren', 'Bestandsregulierung', 'Ökologie'],
+    view_count: 134,
+    is_featured: false,
+    published_at: '2024-11-12T16:45:00Z',
+    created_at: '2024-11-12T16:45:00Z'
+  }
+];
 
 const BlogPage = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [categories, setCategories] = useState<BlogCategory[]>([]);
-  const [featuredPosts, setFeaturedPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 6;
 
@@ -60,64 +114,46 @@ const BlogPage = () => {
   const fetchBlogData = async () => {
     try {
       setLoading(true);
+      setError(null);
 
-      // Fetch published blog posts
-      const { data: postsData, error: postsError } = await supabase
-        .from('blog_posts_2025_11_18_14_00')
-        .select('*')
-        .eq('status', 'published')
-        .order('published_at', { ascending: false });
+      // Versuche Supabase zu laden
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        
+        // Fetch published blog posts
+        const { data: postsData, error: postsError } = await supabase
+          .from('blog_posts_2025_11_18_14_00')
+          .select('*')
+          .eq('status', 'published')
+          .order('published_at', { ascending: false });
 
-      if (postsError) throw postsError;
-      setPosts(postsData || []);
-
-      // Fetch featured posts
-      const featuredData = (postsData || []).filter(post => post.is_featured).slice(0, 3);
-      setFeaturedPosts(featuredData);
-
-      // Fetch categories
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from('blog_categories_2025_11_18_14_00')
-        .select('*')
-        .order('name');
-
-      if (categoriesError) throw categoriesError;
-      setCategories(categoriesData || []);
+        if (postsError) throw postsError;
+        
+        if (postsData && postsData.length > 0) {
+          setPosts(postsData);
+        } else {
+          // Keine Daten in der Datenbank, verwende Fallback
+          setPosts(fallbackPosts);
+        }
+      } catch (supabaseError) {
+        console.warn('Supabase nicht verfügbar, verwende Fallback-Daten:', supabaseError);
+        setPosts(fallbackPosts);
+      }
 
     } catch (error) {
       console.error('Error fetching blog data:', error);
+      setError('Fehler beim Laden der Blog-Artikel');
+      // Auch bei Fehlern Fallback-Daten verwenden
+      setPosts(fallbackPosts);
     } finally {
       setLoading(false);
     }
   };
 
-  const incrementViewCount = async (postId: string) => {
-    try {
-      const { data: currentPost } = await supabase
-        .from('blog_posts_2025_11_18_14_00')
-        .select('view_count')
-        .eq('id', postId)
-        .single();
-      
-      const newCount = (currentPost?.view_count || 0) + 1;
-      
-      await supabase
-        .from('blog_posts_2025_11_18_14_00')
-        .update({ view_count: newCount })
-        .eq('id', postId);
-    } catch (error) {
-      console.error('Error incrementing view count:', error);
-    }
-  };
-
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.content.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = !selectedCategory || post.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
+                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
   });
 
   const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
@@ -126,17 +162,14 @@ const BlogPage = () => {
     currentPage * postsPerPage
   );
 
+  const featuredPosts = posts.filter(post => post.is_featured).slice(0, 3);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('de-DE', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
-  };
-
-  const getCategoryColor = (categoryName: string) => {
-    const category = categories.find(cat => cat.name === categoryName);
-    return category?.color || '#10b981';
   };
 
   if (loading) {
@@ -161,11 +194,19 @@ const BlogPage = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Jagd Weetzen Blog
+              🦌 Jagd Weetzen Blog
             </h1>
             <p className="text-xl text-green-100 max-w-2xl mx-auto">
               Erfahrungen, Wissen und Geschichten aus dem Jagdrevier Weetzen
             </p>
+            {error && (
+              <div className="mt-4 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                <div className="flex items-center gap-2 text-yellow-100">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="text-sm">Fallback-Modus: Beispiel-Artikel werden angezeigt</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -174,7 +215,10 @@ const BlogPage = () => {
         {/* Featured Posts */}
         {featuredPosts.length > 0 && (
           <div className="mb-12">
-            <h2 className="text-2xl font-bold mb-6">Empfohlene Artikel</h2>
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <BookOpen className="h-6 w-6" />
+              Empfohlene Artikel
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredPosts.map((post) => (
                 <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -184,6 +228,10 @@ const BlogPage = () => {
                         src={post.featured_image}
                         alt={post.title}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
                       />
                       <div className="absolute top-4 left-4">
                         <Badge className="bg-yellow-500 text-yellow-900">
@@ -194,14 +242,9 @@ const BlogPage = () => {
                   )}
                   <CardContent className="p-6">
                     <div className="flex items-center gap-2 mb-3">
-                      {post.category && (
-                        <Badge 
-                          variant="secondary"
-                          style={{ backgroundColor: getCategoryColor(post.category) + '20', color: getCategoryColor(post.category) }}
-                        >
-                          {post.category}
-                        </Badge>
-                      )}
+                      <Badge variant="secondary">
+                        {post.category}
+                      </Badge>
                       <span className="text-sm text-muted-foreground flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {formatDate(post.published_at)}
@@ -228,10 +271,7 @@ const BlogPage = () => {
                         </span>
                       </div>
                       
-                      <Link 
-                        to={`/blog/${post.slug}`}
-                        onClick={() => incrementViewCount(post.id)}
-                      >
+                      <Link to={`/blog/${post.slug}`}>
                         <Button variant="ghost" size="sm">
                           Lesen <ArrowRight className="h-3 w-3 ml-1" />
                         </Button>
@@ -244,43 +284,16 @@ const BlogPage = () => {
           </div>
         )}
 
-        {/* Search and Filter */}
+        {/* Search */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Blog-Artikel durchsuchen..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            
-            <div className="md:w-64">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Alle Kategorien" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Alle Kategorien</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.name}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: category.color }}
-                        ></div>
-                        {category.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Blog-Artikel durchsuchen..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </div>
 
@@ -294,19 +307,18 @@ const BlogPage = () => {
                     src={post.featured_image}
                     alt={post.title}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
                   />
                 </div>
               )}
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-3">
-                  {post.category && (
-                    <Badge 
-                      variant="secondary"
-                      style={{ backgroundColor: getCategoryColor(post.category) + '20', color: getCategoryColor(post.category) }}
-                    >
-                      {post.category}
-                    </Badge>
-                  )}
+                  <Badge variant="secondary">
+                    {post.category}
+                  </Badge>
                   <span className="text-sm text-muted-foreground flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     {formatDate(post.published_at)}
@@ -348,10 +360,7 @@ const BlogPage = () => {
                     </span>
                   </div>
                   
-                  <Link 
-                    to={`/blog/${post.slug}`}
-                    onClick={() => incrementViewCount(post.id)}
-                  >
+                  <Link to={`/blog/${post.slug}`}>
                     <Button variant="ghost" size="sm">
                       Lesen <ArrowRight className="h-3 w-3 ml-1" />
                     </Button>
@@ -369,8 +378,8 @@ const BlogPage = () => {
               <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Keine Artikel gefunden</h3>
               <p className="text-muted-foreground">
-                {searchTerm || selectedCategory 
-                  ? 'Versuchen Sie andere Suchbegriffe oder Filter.'
+                {searchTerm 
+                  ? 'Versuchen Sie andere Suchbegriffe.'
                   : 'Es sind noch keine Blog-Artikel veröffentlicht.'
                 }
               </p>
@@ -410,40 +419,31 @@ const BlogPage = () => {
           </div>
         )}
 
-        {/* Categories Sidebar */}
-        {categories.length > 0 && (
-          <div className="mt-12">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Tag className="h-5 w-5" />
-                  Kategorien
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-                  {categories.map((category) => (
-                    <Button
-                      key={category.id}
-                      variant={selectedCategory === category.name ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedCategory(
-                        selectedCategory === category.name ? '' : category.name
-                      )}
-                      className="justify-start"
-                    >
-                      <div 
-                        className="w-3 h-3 rounded-full mr-2" 
-                        style={{ backgroundColor: category.color }}
-                      ></div>
-                      {category.name}
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {/* Info Box */}
+        <div className="mt-12">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Über unseren Blog
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Hier teilen wir unsere Erfahrungen aus dem Jagdrevier Weetzen mit Ihnen. 
+                Von der Ausbildung unserer Jagdhunde über moderne Rehkitzrettung bis hin zu 
+                Naturschutzmaßnahmen - erfahren Sie mehr über unsere Arbeit im Calenberger Land.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Badge variant="outline">Jagdhunde</Badge>
+                <Badge variant="outline">Rehkitzrettung</Badge>
+                <Badge variant="outline">Naturschutz</Badge>
+                <Badge variant="outline">Stapelteiche</Badge>
+                <Badge variant="outline">Wildtiermanagement</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
