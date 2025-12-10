@@ -193,7 +193,7 @@ const BlogPage = () => {
       <div 
         className="relative text-white py-16 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'linear-gradient(rgba(30, 58, 46, 0.8), rgba(45, 90, 61, 0.8)), url("./images/weetzen.jpg")',
+          backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("./images/weetzen.jpg")',
           minHeight: '400px'
         }}
       >
