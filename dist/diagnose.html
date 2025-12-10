@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnose - Jagdrevier Weetzen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3a2e 0%, #2d5a3d 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 10px;
+        }
+        .status-ok { color: #4CAF50; }
+        .status-error { color: #f44336; }
+        .test-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        .test-item.error {
+            border-left-color: #f44336;
+        }
+        .test-item.warning {
+            border-left-color: #ff9800;
+        }
+        .button {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin: 5px;
+            font-weight: bold;
+        }
+        .button:hover {
+            background: #45a049;
+        }
+        .button.secondary {
+            background: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦌 Jagdrevier Weetzen - System-Diagnose</h1>
+        <p>Diese Seite hilft bei der Diagnose von Problemen mit der Website auf Alfahosting.</p>
+        
+        <div class="test-item" id="js-test">
+            <h3>❌ JavaScript-Test</h3>
+            <p>JavaScript ist nicht aktiv oder funktioniert nicht korrekt.</p>
+        </div>
+        
+        <div class="test-item">
+            <h3>✅ HTML-Grundfunktion</h3>
+            <p>Diese Diagnose-Seite wird korrekt angezeigt - HTML funktioniert.</p>
+        </div>
+        
+        <div class="test-item">
+            <h3>📁 Asset-Tests</h3>
+            <div id="file-tests">
+                <p>Teste Zugriff auf wichtige Dateien...</p>
+            </div>
+        </div>
+        
+        <div class="test-item warning">
+            <h3>⚠️ Blog-Seite weiß auf Alfahosting - ASSETS FEHLEN!</h3>
+            <p><strong>Problem:</strong> Wichtige JavaScript-Dateien fehlen auf GitHub und Alfahosting!</p>
+            <p><strong>Fehlende Dateien:</strong></p>
+            <ul>
+                <li><strong>index-BCLHy3Rb.js</strong> - Haupt-JavaScript (1.9MB) - KRITISCH!</li>
+                <li><strong>index.es-D8EGj79V.js</strong> - ES-Module (151KB) - WICHTIG!</li>
+                <li>index-C_FFAsVU.css - CSS vorhanden ✅</li>
+            </ul>
+            <p><strong>Sofort-Lösung:</strong></p>
+            <ul>
+                <li><strong>Statische Version nutzen:</strong> <a href="/static.html" style="color: #4CAF50;">static.html</a> funktioniert immer</li>
+                <li><strong>Backup-Website:</strong> <a href="https://art7temphf.skywork.website" style="color: #4CAF50;">Skywork-Hosting</a></li>
+                <li><strong>Assets neu generieren:</strong> Projekt neu bauen und alle Dateien hochladen</li>
+            </ul>
+        </div>
+        
+        <h2>🌐 Navigation & Tests</h2>
+        <a href="/" class="button">🏠 React-App (Fehlt JS!)</a>
+        <a href="/blog" class="button">📝 Blog (Fehlt JS!)</a>
+        <a href="/static.html" class="button secondary">📄 Statische Version (Funktioniert)</a>
+        <a href="/admin" class="button">🎛️ Admin (Fehlt JS!)</a>
+        <a href="https://art7temphf.skywork.website" class="button secondary">🌐 Backup</a>
+        
+        <div style="margin-top: 30px; font-size: 12px; opacity: 0.7;">
+            <p>Diagnose-Zeit: <span id="timestamp"></span></p>
+            <p>URL: <span id="current-url"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript-Test
+        document.getElementById('js-test').innerHTML = `
+            <h3>✅ JavaScript-Test</h3>
+            <p class="status-ok">JavaScript funktioniert korrekt!</p>
+        `;
+        
+        // Zeitstempel
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('de-DE');
+        document.getElementById('current-url').textContent = window.location.href;
+        
+        // Asset-Tests mit aktuellen Dateinamen
+        const assetsToTest = [
+            './assets/index-BCLHy3Rb.js',
+            './assets/index-C_FFAsVU.css',
+            './assets/index.es-D8EGj79V.js',
+            './static.html',
+            './index.php'
+        ];
+        
+        let testResults = '<strong>Teste wichtige Dateien:</strong><br><br>';
+        let testsCompleted = 0;
+        
+        assetsToTest.forEach(asset => {
+            fetch(asset, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        testResults += `✅ ${asset} - OK<br>`;
+                    } else {
+                        testResults += `❌ ${asset} - Fehler ${response.status}<br>`;
+                    }
+                })
+                .catch(error => {
+                    testResults += `❌ ${asset} - Nicht erreichbar<br>`;
+                })
+                .finally(() => {
+                    testsCompleted++;
+                    if (testsCompleted === assetsToTest.length) {
+                        document.getElementById('file-tests').innerHTML = testResults;
+                    }
+                });
+        });
+        
+        console.log('🦌 Jagdrevier Weetzen - Diagnose-Seite geladen');
+        console.log('🚨 KRITISCH: JavaScript-Assets fehlen auf GitHub!');
+    </script>
+</body>
+</html>
